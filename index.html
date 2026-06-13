@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Stage Charts">
+<meta name="theme-color" content="#1f6f78">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<title>Stage Charts</title>
+<style>
+  :root{
+    --bg:#faf9f6; --panel:#ffffff; --ink:#1d2125; --muted:#6b7480;
+    --line:#e4e2db; --chord:#1f6f78; --accent:#c8643c; --accent2:#1f6f78;
+    --shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(0,0,0,.05);
+    --radius:12px; --songsize:18px; --cols:2;
+  }
+  body.dark{
+    --bg:#11141a; --panel:#171b22; --ink:#eef1f4; --muted:#9aa4b1;
+    --line:#2a313c; --chord:#5fd3c6; --accent:#f0915f; --accent2:#5fd3c6;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 30px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif;background:var(--bg);color:var(--ink);-webkit-text-size-adjust:100%;transition:background .2s,color .2s}
+  .ui{font-family:'Inter','Segoe UI',-apple-system,BlinkMacSystemFont,Arial,sans-serif}
+
+  header{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
+  .bar{display:flex;align-items:center;gap:10px;padding:9px 14px;flex-wrap:wrap}
+  .brand{font-family:'Inter','Segoe UI',sans-serif;font-weight:800;letter-spacing:-.02em;font-size:16px;display:flex;align-items:center;gap:8px}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent)}
+  .spacer{flex:1}
+  .grp{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px}
+  .grp .lab{font-family:'Inter',sans-serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 6px 0 8px}
+  button,select{font-family:'Inter','Segoe UI',sans-serif;font-size:14px;color:var(--ink)}
+  .btn{appearance:none;border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:8px 12px;cursor:pointer;line-height:1;display:inline-flex;align-items:center;gap:7px;transition:.12s;white-space:nowrap}
+  .btn:hover{border-color:var(--accent2)} .btn:active{transform:translateY(1px)}
+  .btn.sq{padding:8px 11px;font-weight:700;min-width:38px;justify-content:center}
+  .btn.on{background:var(--accent2);border-color:var(--accent2);color:#fff} body.dark .btn.on{color:#0c1015}
+  .btn.mini{padding:6px 9px;font-size:13px}
+  select.btn{padding-right:8px}
+  .key{font-weight:800;min-width:54px;text-align:center}
+
+  /* set strip */
+  #setbar{display:none;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:54px;z-index:30}
+  body.hasSet #setbar{display:flex}
+  .set-ctrl{appearance:none;border:1px solid var(--line);background:var(--bg);border-radius:8px;font-size:20px;font-weight:700;line-height:1;padding:4px 12px;cursor:pointer;color:var(--ink)}
+  .chips{flex:1;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{font-family:'Inter',sans-serif;font-size:12px;white-space:nowrap;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer}
+  .chip.cur{background:var(--accent2);border-color:var(--accent2);color:#fff} body.dark .chip.cur{color:#0c1015}
+
+  .wrap{display:flex;min-height:calc(100vh - 54px)}
+  aside{width:256px;flex:none;border-right:1px solid var(--line);background:var(--panel);overflow:auto;max-height:calc(100vh - 54px);position:sticky;top:54px}
+  aside.hide{display:none}
+  .aside-h{font-family:'Inter',sans-serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:14px 16px 8px}
+  .set-row{display:flex;gap:6px;padding:0 12px 10px;align-items:center}
+  .set-row select{flex:1}
+  .listhead{font-family:'Inter',sans-serif;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:8px 16px 4px}
+  .song-item{padding:10px 14px 10px 16px;cursor:pointer;border-left:3px solid transparent;display:flex;align-items:center;gap:8px}
+  .song-item:hover{background:color-mix(in srgb,var(--accent2) 7%,transparent)}
+  .song-item.sel{border-left-color:var(--accent);background:color-mix(in srgb,var(--accent2) 9%,transparent)}
+  .song-item .num{font-family:'Inter',sans-serif;font-weight:800;color:var(--accent);font-size:13px;min-width:16px}
+  .song-item .meta{flex:1;min-width:0}
+  .song-item .t{font-family:'Inter',sans-serif;font-weight:650;font-size:14px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .song-item .a{font-family:'Inter',sans-serif;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .song-item .k{font-family:'Inter',sans-serif;font-size:10px;color:var(--accent2);font-weight:800}
+  .reorder{display:flex;flex-direction:column;gap:1px}
+  .ic{appearance:none;border:none;background:none;cursor:pointer;color:var(--muted);font-size:13px;line-height:1;padding:2px}
+  .ic:hover{color:var(--accent2)} .ic.x:hover{color:#c0392b}
+  .aside-foot{padding:12px 14px;display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--panel)}
+
+  main{flex:1;min-width:0;overflow:auto;display:flex;justify-content:center;padding:22px 18px 90px}
+  .page{width:min(100%,8.5in);background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:26px 30px}
+  body.pageMode main>.page{aspect-ratio:8.5/11;overflow:hidden;display:flex;flex-direction:column}
+  .song-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:12px}
+  .song-title{font-family:'Inter',sans-serif;font-weight:800;font-size:21px;letter-spacing:-.02em;line-height:1.05}
+  .song-sub{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--muted);margin-top:2px}
+  .song-meta{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--muted);text-align:right;line-height:1.4}
+  .song-meta b{color:var(--accent2)}
+  .song{column-count:var(--cols);column-gap:30px;column-fill:balance;font-size:var(--songsize)}
+  body.pageMode main>.page .song{flex:1;min-height:0}
+  .section{break-inside:avoid;margin:0 0 11px}
+  .sec-label{font-family:'Inter',sans-serif;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+  .ln{line-height:1.05;margin:1px 0}
+  .u{display:inline-block;vertical-align:bottom}
+  .ch{display:block;font-family:'Inter','Segoe UI',sans-serif;font-weight:700;font-size:.74em;color:var(--chord);height:1.18em;white-space:pre;letter-spacing:-.01em}
+  .ly{display:block;white-space:pre}
+  body.lyricsOnly .ch{display:none}
+  body.lyricsOnly .ln{line-height:1.35;margin:2px 0}
+  body.lyricsOnly .sec-label{margin-bottom:1px}
+  .credit{font-family:'Inter',sans-serif;font-size:9px;color:var(--muted);margin-top:10px;padding-top:6px;border-top:1px solid var(--line)}
+
+  .empty{font-family:'Inter',sans-serif;color:var(--muted);text-align:center;margin-top:60px;max-width:420px}
+  .empty h2{color:var(--ink);font-weight:800}
+  dialog{border:none;border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.4);padding:0;max-width:680px;width:92vw;background:var(--panel);color:var(--ink)}
+  dialog::backdrop{background:rgba(10,12,16,.55);backdrop-filter:blur(2px)}
+  .modal-h{font-family:'Inter',sans-serif;font-weight:800;font-size:17px;padding:18px 20px 0}
+  .modal-b{padding:14px 20px 20px;font-family:'Inter',sans-serif;max-height:62vh;overflow:auto}
+  .fld{margin-bottom:12px}
+  .fld label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+  .fld input,.fld select,.fld textarea{width:100%;font-family:inherit;font-size:14px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink)}
+  .fld textarea{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:13px;line-height:1.5;min-height:240px;resize:vertical}
+  .row2{display:grid;grid-template-columns:1fr 1fr 130px;gap:10px}
+  .modal-foot{display:flex;justify-content:space-between;gap:8px;padding:0 20px 20px;flex-wrap:wrap}
+  .hint{font-size:12px;color:var(--muted);line-height:1.5;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:12px}
+  .hint code{background:color-mix(in srgb,var(--accent2) 14%,transparent);padding:1px 5px;border-radius:4px;font-size:11.5px}
+  .pick{display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid var(--line)}
+  .pick input{width:20px;height:20px}
+  .pick .t{font-weight:650;font-size:14px}
+  .pick .a{font-size:11px;color:var(--muted)}
+  .danger{color:#c0392b}
+
+  @media (max-width:720px){
+    aside{position:fixed;left:0;top:54px;bottom:0;z-index:35;box-shadow:var(--shadow)}
+    .grp .lab{display:none}
+  }
+
+  /* print */
+  #printRoot{display:none}
+  @media print{
+    @page{size:Letter;margin:.45in}
+    header,aside,#setbar,main,.no-print{display:none!important}
+    body{background:#fff;color:#000}
+    #printRoot{display:block}
+    #printRoot .page{width:auto;border:none;box-shadow:none;border-radius:0;padding:0;aspect-ratio:auto}
+    #printRoot .page+.page{break-before:page}
+    #printRoot.multi .song{font-size:13px}
+    .song{column-count:var(--cols)}
+    .ch{color:#155} .sec-label{color:#b04a22} .song-head{border-color:#000}
+  }
+</style>
+</head>
+<body>
+<header class="ui">
+  <div class="bar">
+    <div class="brand"><span class="dot"></span> Stage Charts</div>
+    <button class="btn sq" id="toggleAside" title="Songs &amp; sets">☰</button>
+    <div class="grp"><span class="lab">Key</span>
+      <button class="btn sq" id="keyDown" title="Down a half-step">▼</button>
+      <select class="btn key" id="keySel"></select>
+      <button class="btn sq" id="keyUp" title="Up a half-step">▲</button>
+    </div>
+    <div class="grp"><span class="lab">Capo</span><select class="btn" id="capoSel"></select></div>
+    <div class="grp"><span class="lab">Show</span>
+      <button class="btn on" id="mNames">Chords</button>
+      <button class="btn" id="mNumbers">Numbers</button>
+      <button class="btn" id="mLyrics">Lyrics</button>
+    </div>
+    <div class="spacer"></div>
+    <div class="grp"><span class="lab">Cols</span>
+      <button class="btn sq" id="col1">1</button><button class="btn sq on" id="col2">2</button>
+    </div>
+    <div class="grp"><span class="lab">Size</span>
+      <button class="btn sq" id="szDown">A−</button><button class="btn sq" id="szUp">A+</button>
+    </div>
+    <button class="btn sq" id="pageBtn" title="Fit to one page">📄</button>
+    <button class="btn sq" id="themeBtn" title="Light / dark">◐</button>
+    <button class="btn" id="printBtn">⎙ Print / PDF</button>
+  </div>
+  <div id="setbar"></div>
+</header>
+
+<div class="wrap">
+  <aside id="aside" class="ui">
+    <div class="aside-h">Songs &amp; sets</div>
+    <div class="set-row">
+      <select class="btn" id="setSel"></select>
+      <button class="btn mini" id="newSet" title="New set">＋ Set</button>
+      <button class="btn mini" id="delSet" title="Delete set">🗑</button>
+    </div>
+    <div id="list"></div>
+    <div class="aside-foot">
+      <button class="btn" id="addBtn">＋ Add song</button>
+      <button class="btn" id="editBtn">✎ Edit</button>
+      <button class="btn" id="expBtn">⬇ Backup</button>
+      <button class="btn" id="impBtn">⬆ Restore</button>
+      <input type="file" id="impFile" accept="application/json" hidden>
+    </div>
+  </aside>
+  <main><div id="stage"></div></main>
+</div>
+
+<div id="printRoot"></div>
+
+<dialog id="editor" class="ui">
+  <div class="modal-h" id="edTitle">Add song</div>
+  <div class="modal-b">
+    <div class="hint">A chord in square brackets sits over the next syllable: <code>my firm [Gsus]foun-[G]dation</code>. Start a section with <code># Chorus</code> on its own line. <code>[N.C.]</code> = no chord; passing chords can be written <code>[(D)]</code>.</div>
+    <div class="row2">
+      <div class="fld"><label>Title</label><input id="edT" placeholder="Song title"></div>
+      <div class="fld"><label>Artist / writers</label><input id="edA" placeholder="Optional"></div>
+      <div class="fld"><label>Key</label><select id="edK"></select></div>
+    </div>
+    <div class="fld"><label>Chart (chords + lyrics)</label><textarea id="edBody" spellcheck="false"></textarea></div>
+    <div class="fld"><label>Credit line (optional)</label><input id="edC" placeholder="CCLI #, © …"></div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn danger" id="edDel">Delete song</button><span style="flex:1"></span>
+    <button class="btn" id="edCancel">Cancel</button><button class="btn on" id="edSave">Save</button>
+  </div>
+</dialog>
+
+<dialog id="picker" class="ui">
+  <div class="modal-h">Add songs to this set</div>
+  <div class="modal-b"><div id="pickList"></div></div>
+  <div class="modal-foot"><span style="flex:1"></span><button class="btn" id="pickCancel">Cancel</button><button class="btn on" id="pickApply">Done</button></div>
+</dialog>
+
+<script>
+"use strict";
+/* ===================== music engine ===================== */
+const SHARP=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const FLAT =['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+const KEYS=[{n:'C',i:0,flat:false},{n:'Db',i:1,flat:true},{n:'D',i:2,flat:false},{n:'Eb',i:3,flat:true},{n:'E',i:4,flat:false},{n:'F',i:5,flat:true},{n:'F#',i:6,flat:false},{n:'G',i:7,flat:false},{n:'Ab',i:8,flat:true},{n:'A',i:9,flat:false},{n:'Bb',i:10,flat:true},{n:'B',i:11,flat:false}];
+const NUM={0:'1',1:'b2',2:'2',3:'b3',4:'3',5:'4',6:'#4',7:'5',8:'b6',9:'6',10:'b7',11:'7'};
+function noteIdx(n){let i=SHARP.indexOf(n);if(i>=0)return i;return FLAT.indexOf(n);}
+function idxNote(i,flat){i=((i%12)+12)%12;return flat?FLAT[i]:SHARP[i];}
+function keyIdx(name){return noteIdx(String(name).replace(/m$/,''));}
+function parseChord(tok){
+  if(tok==='N.C.'||tok==='NC')return{nc:true,raw:tok};
+  const sl=tok.split('/');
+  const m=sl[0].match(/^([A-G][#b]?)(.*)$/);
+  if(!m)return{raw:tok,unknown:true};
+  let bass=null;
+  if(sl[1]){const b=sl[1].match(/^([A-G][#b]?)(.*)$/);if(b)bass={root:b[1],rest:b[2]};}
+  return{root:m[1],suffix:m[2],bass:bass,raw:tok};
+}
+function transposeOne(tok,semi,flat){
+  const c=parseChord(tok);if(c.nc||c.unknown)return tok;
+  let out=idxNote(noteIdx(c.root)+semi,flat)+c.suffix;
+  if(c.bass)out+='/'+idxNote(noteIdx(c.bass.root)+semi,flat)+c.bass.rest;
+  return out;
+}
+function toNumberOne(tok,songKey){
+  const c=parseChord(tok);if(c.nc||c.unknown)return tok;
+  const k=keyIdx(songKey);
+  let out=NUM[((noteIdx(c.root)-k)%12+12)%12]+c.suffix;
+  if(c.bass)out+='/'+NUM[((noteIdx(c.bass.root)-k)%12+12)%12]+c.bass.rest;
+  return out;
+}
+/* a bracket may hold several space-separated symbols, each maybe wrapped in ( ) */
+function xformCluster(cluster,fn){
+  return cluster.split(/\s+/).map(t=>{
+    if(t==='')return t;
+    const m=t.match(/^\((.*)\)$/);
+    return m?'('+fn(m[1])+')':fn(t);
+  }).join(' ');
+}
+
+/* ===================== parsing ===================== */
+function parseSong(body){
+  const sections=[];let cur=null;
+  body.split(/\r?\n/).forEach(raw=>{
+    const line=raw.replace(/\s+$/,'');
+    if(/^#\s?/.test(line)){cur={label:line.replace(/^#\s?/,''),lines:[]};sections.push(cur);return;}
+    if(!cur){cur={label:'',lines:[]};sections.push(cur);}
+    cur.lines.push(line);
+  });
+  return sections;
+}
+function parseLine(line){
+  const units=[];const first=line.indexOf('[');
+  if(first!==0){const lead=first===-1?line:line.slice(0,first);if(lead!=='')units.push({chord:null,lyric:lead});if(first===-1)return units;}
+  const re=/\[([^\]]*)\]/g;re.lastIndex=first;let m;
+  while((m=re.exec(line))!==null){
+    const start=re.lastIndex;const next=line.indexOf('[',start);
+    const lyric=next===-1?line.slice(start):line.slice(start,next);
+    units.push({chord:m[1],lyric:lyric});
+    if(next===-1)break;re.lastIndex=next;
+  }
+  return units;
+}
+
+/* ===================== state ===================== */
+const S={mode:'names',targetIdx:null,capo:0,cols:2,size:18,page:false,dark:false,selId:null,activeSet:null,setIdx:0};
+let library=[],sets=[];
+const store={
+  save(){try{localStorage.setItem('stagecharts_v1',JSON.stringify({library,sets}));}catch(e){}},
+  load(){try{const s=localStorage.getItem('stagecharts_v1');if(s){const d=JSON.parse(s);return Array.isArray(d)?{library:d,sets:[]}:{library:d.library||[],sets:d.sets||[]};}}catch(e){}return null;}
+};
+function persist(){store.save();}
+function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function byId(id){return library.find(s=>s.id===id);}
+function curSong(){return byId(S.selId)||library[0];}
+function activeSetObj(){return sets.find(s=>s.id===S.activeSet);}
+function setSongs(){const st=activeSetObj();return st?st.songIds.map(byId).filter(Boolean):[];}
+
+/* ===================== rendering ===================== */
+function transformFor(song,tIdx,capo,mode){
+  if(mode==='numbers')return t=>toNumberOne(t,song.key);
+  const flat=KEYS[tIdx].flat,semi=tIdx-keyIdx(song.key)-capo;
+  return t=>transposeOne(t,semi,flat);
+}
+function keyLabel(song,tIdx,capo,mode){
+  if(mode==='numbers')return 'Numbers · '+song.key;
+  return KEYS[tIdx].n+(capo>0?(' · capo '+capo):'');
+}
+function renderPageHTML(song,tIdx,capo,mode){
+  const base=transformFor(song,tIdx,capo,mode);
+  const tf=c=>xformCluster(c,base);
+  let body='';
+  song.sections.forEach(sec=>{
+    body+='<div class="section">';
+    if(sec.label)body+='<div class="sec-label">'+esc(sec.label)+'</div>';
+    sec.lines.forEach(line=>{
+      if(line===''){body+='<div class="ln">&nbsp;</div>';return;}
+      let ln='<div class="ln">';
+      parseLine(line).forEach(u=>{
+        const lyric=(u.lyric===''||u.lyric==null)?'\u00A0':u.lyric;
+        if(u.chord==null)ln+='<span class="u"><span class="ch"></span><span class="ly">'+esc(lyric)+'</span></span>';
+        else ln+='<span class="u"><span class="ch">'+esc(tf(u.chord))+' </span><span class="ly">'+esc(lyric)+'</span></span>';
+      });
+      body+=ln+'</div>';
+    });
+    body+='</div>';
+  });
+  const capoNote=(capo>0&&mode==='names')?'<div style="font-family:Inter,sans-serif;font-size:11px;color:var(--accent);margin-top:2px">Capo '+capo+' — play these shapes, sounds in '+KEYS[tIdx].n+'</div>':'';
+  return '<div class="page"><div class="song-head"><div><div class="song-title">'+esc(song.title)+'</div>'
+    +(song.artist?'<div class="song-sub">'+esc(song.artist)+'</div>':'')+'</div>'
+    +'<div class="song-meta">Original <b>'+esc(song.key)+'</b><br>Now <b>'+esc(keyLabel(song,tIdx,capo,mode))+'</b>'+capoNote+'</div></div>'
+    +'<div class="song">'+body+'</div>'
+    +(song.credit?'<div class="credit">'+esc(song.credit)+'</div>':'')+'</div>';
+}
+function render(){
+  const stage=document.getElementById('stage');
+  if(!library.length){stage.innerHTML='<div class="empty"><h2>No songs yet</h2><p>Tap “＋ Add song”, or Restore a backup.</p></div>';renderList();return;}
+  const song=curSong();
+  if(S.targetIdx===null)S.targetIdx=keyIdx(song.key);
+  document.getElementById('keySel').value=S.targetIdx;
+  document.getElementById('capoSel').value=S.capo;
+  stage.innerHTML=renderPageHTML(song,S.targetIdx,S.capo,S.mode);
+  if(S.page)fitPage();
+  renderSetSelect();renderSetbar();renderList();
+}
+function fitPage(){
+  const page=document.querySelector('main>.page'),body=page&&page.querySelector('.song');
+  if(!body)return;
+  for(let sz=Math.min(S.size,22);sz>=8;sz--){body.style.fontSize=sz+'px';if(body.scrollHeight<=body.clientHeight+1)break;}
+}
+function renderSetSelect(){
+  const sel=document.getElementById('setSel');
+  sel.innerHTML='<option value="">♪ Full library</option>'+sets.map(s=>'<option value="'+s.id+'">'+esc(s.name)+'</option>').join('');
+  sel.value=S.activeSet||'';
+  document.getElementById('delSet').style.opacity=S.activeSet?'1':'.4';
+}
+function renderSetbar(){
+  const bar=document.getElementById('setbar');
+  if(!S.activeSet){document.body.classList.remove('hasSet');return;}
+  document.body.classList.add('hasSet');
+  const songs=setSongs();let idx=songs.findIndex(s=>s.id===S.selId);if(idx<0)idx=0;S.setIdx=idx;
+  bar.innerHTML='<button class="set-ctrl" id="prevSong">‹</button><div class="chips">'
+    +songs.map((s,i)=>'<span class="chip'+(i===idx?' cur':'')+'" data-i="'+i+'">'+(i+1)+'. '+esc(s.title)+'</span>').join('')
+    +'</div><button class="set-ctrl" id="nextSong">›</button>';
+  bar.querySelectorAll('.chip').forEach(c=>c.onclick=()=>gotoSet(+c.dataset.i));
+  document.getElementById('prevSong').onclick=()=>gotoSet(idx-1);
+  document.getElementById('nextSong').onclick=()=>gotoSet(idx+1);
+}
+function gotoSet(i){const songs=setSongs();if(i<0||i>=songs.length)return;openSong(songs[i].id);}
+function openSong(id){S.selId=id;S.targetIdx=null;S.capo=0;render();}
+function renderList(){
+  const el=document.getElementById('list');
+  if(S.activeSet){
+    const songs=setSongs();
+    el.innerHTML='<div class="listhead">In this set — drag-free reorder</div>'
+      +songs.map((s,i)=>'<div class="song-item'+(s.id===S.selId?' sel':'')+'" data-id="'+s.id+'">'
+        +'<span class="num">'+(i+1)+'</span><div class="meta"><div class="t">'+esc(s.title)+'</div><div class="a">'+esc(s.artist||'')+'</div></div>'
+        +'<span class="k">'+esc(s.key)+'</span>'
+        +'<span class="reorder"><button class="ic" data-up="'+s.id+'">▲</button><button class="ic" data-down="'+s.id+'">▼</button></span>'
+        +'<button class="ic x" data-rm="'+s.id+'">✕</button></div>').join('')
+      +'<div style="padding:12px 14px"><button class="btn" id="addToSet">＋ Add songs from library</button></div>';
+    el.querySelectorAll('.song-item').forEach(n=>n.onclick=e=>{if(e.target.closest('.ic'))return;openSong(n.dataset.id);if(window.innerWidth<=720)document.getElementById('aside').classList.add('hide');});
+    el.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>moveInSet(b.dataset.up,-1));
+    el.querySelectorAll('[data-down]').forEach(b=>b.onclick=()=>moveInSet(b.dataset.down,1));
+    el.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>removeFromSet(b.dataset.rm));
+    document.getElementById('addToSet').onclick=openPicker;
+  }else{
+    const songs=[...library].sort((a,b)=>a.title.localeCompare(b.title));
+    el.innerHTML='<div class="listhead">'+songs.length+' songs</div>'
+      +songs.map(s=>'<div class="song-item'+(s.id===S.selId?' sel':'')+'" data-id="'+s.id+'">'
+        +'<div class="meta"><div class="t">'+esc(s.title)+'</div><div class="a">'+esc(s.artist||'')+'</div></div><span class="k">'+esc(s.key)+'</span></div>').join('');
+    el.querySelectorAll('.song-item').forEach(n=>n.onclick=()=>{openSong(n.dataset.id);if(window.innerWidth<=720)document.getElementById('aside').classList.add('hide');});
+  }
+}
+
+/* ===================== set ops ===================== */
+function moveInSet(id,dir){const st=activeSetObj();const a=st.songIds;const i=a.indexOf(id);const j=i+dir;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];persist();render();}
+function removeFromSet(id){const st=activeSetObj();st.songIds=st.songIds.filter(x=>x!==id);persist();render();}
+function newSet(){const name=(prompt('Name this set:','Sunday — ')||'').trim();if(!name)return;const st={id:'set'+Date.now(),name:name,songIds:[]};sets.push(st);S.activeSet=st.id;persist();render();openPicker();}
+function delSet(){if(!S.activeSet)return;if(!confirm('Delete this set? Your songs stay in the library.'))return;sets=sets.filter(s=>s.id!==S.activeSet);S.activeSet=null;persist();render();}
+function openPicker(){
+  const st=activeSetObj();if(!st)return;
+  const songs=[...library].sort((a,b)=>a.title.localeCompare(b.title));
+  document.getElementById('pickList').innerHTML=songs.map(s=>'<label class="pick"><input type="checkbox" value="'+s.id+'"'+(st.songIds.includes(s.id)?' checked':'')+'><span><div class="t">'+esc(s.title)+'</div><div class="a">'+esc(s.artist||'')+' · '+esc(s.key)+'</div></span></label>').join('');
+  document.getElementById('picker').showModal();
+}
+function applyPicker(){
+  const checked=[...document.querySelectorAll('#pickList input:checked')].map(i=>i.value);
+  const st=activeSetObj();
+  st.songIds=[...st.songIds.filter(id=>checked.includes(id)),...checked.filter(id=>!st.songIds.includes(id))];
+  if(!st.songIds.includes(S.selId))S.selId=st.songIds[0]||S.selId;
+  persist();document.getElementById('picker').close();render();
+}
+
+/* ===================== controls ===================== */
+function setMode(m){S.mode=m;['Names','Numbers','Lyrics'].forEach(x=>document.getElementById('m'+x).classList.toggle('on',m===x.toLowerCase()));document.body.classList.toggle('lyricsOnly',m==='lyrics');render();}
+function setCols(c){S.cols=c;document.documentElement.style.setProperty('--cols',c);document.getElementById('col1').classList.toggle('on',c===1);document.getElementById('col2').classList.toggle('on',c===2);if(S.page)fitPage();}
+function setSize(px){S.size=Math.max(10,Math.min(30,px));document.documentElement.style.setProperty('--songsize',S.size+'px');if(S.page)fitPage();}
+function doPrint(){
+  const root=document.getElementById('printRoot');
+  const songs=S.activeSet?setSongs():[curSong()];
+  root.classList.toggle('multi',songs.length>1);
+  root.innerHTML=songs.map(s=>{
+    const tIdx=S.activeSet?keyIdx(s.key):S.targetIdx;
+    const capo=S.activeSet?0:S.capo;
+    return renderPageHTML(s,tIdx,capo,S.mode);
+  }).join('');
+  window.print();
+}
+
+/* ===================== editor / backup ===================== */
+let editingId=null;
+function songToBody(s){return s.sections.map(x=>(x.label?'# '+x.label+'\n':'')+x.lines.join('\n')).join('\n\n');}
+function openEditor(song){
+  editingId=song?song.id:null;
+  document.getElementById('edTitle').textContent=song?'Edit song':'Add song';
+  document.getElementById('edDel').style.visibility=song?'visible':'hidden';
+  document.getElementById('edT').value=song?song.title:'';
+  document.getElementById('edA').value=song?(song.artist||''):'';
+  document.getElementById('edK').value=song?song.key:'G';
+  document.getElementById('edC').value=song?(song.credit||''):'';
+  document.getElementById('edBody').value=song?songToBody(song):'# Verse\nType your [G]first line [C]here\n# Chorus\nAnd your [G]chorus [D]here';
+  document.getElementById('editor').showModal();
+}
+function saveEditor(){
+  const obj={id:editingId||('s'+Date.now()),title:(document.getElementById('edT').value.trim()||'Untitled'),artist:document.getElementById('edA').value.trim(),key:document.getElementById('edK').value,credit:document.getElementById('edC').value.trim(),sections:parseSong(document.getElementById('edBody').value)};
+  if(editingId){library[library.findIndex(s=>s.id===editingId)]=obj;}else library.push(obj);
+  S.selId=obj.id;S.targetIdx=null;S.capo=0;persist();document.getElementById('editor').close();render();
+}
+function deleteEditor(){if(!editingId)return;if(!confirm('Delete this song?'))return;library=library.filter(s=>s.id!==editingId);sets.forEach(st=>st.songIds=st.songIds.filter(x=>x!==editingId));S.selId=library[0]?.id||null;S.targetIdx=null;persist();document.getElementById('editor').close();render();}
+function exportLib(){const blob=new Blob([JSON.stringify({library,sets},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='stage-charts-backup.json';a.click();}
+function importLib(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d)){library=d;sets=[];}else{library=d.library||[];sets=d.sets||[];}S.selId=library[0]?.id;S.activeSet=null;S.targetIdx=null;persist();render();}catch(err){alert('That file could not be read.');}};r.readAsText(f);}
+
+/* ===================== wiring ===================== */
+function wire(){
+  const keySel=document.getElementById('keySel');
+  keySel.innerHTML=KEYS.map((k,i)=>'<option value="'+i+'">'+k.n+'</option>').join('');
+  keySel.onchange=()=>{S.targetIdx=+keySel.value;render();};
+  document.getElementById('keyUp').onclick=()=>{S.targetIdx=(S.targetIdx+1)%12;render();};
+  document.getElementById('keyDown').onclick=()=>{S.targetIdx=(S.targetIdx+11)%12;render();};
+  const capo=document.getElementById('capoSel');
+  capo.innerHTML=Array.from({length:8},(_,i)=>'<option value="'+i+'">'+(i===0?'none':i)+'</option>').join('');
+  capo.onchange=()=>{S.capo=+capo.value;render();};
+  document.getElementById('mNames').onclick=()=>setMode('names');
+  document.getElementById('mNumbers').onclick=()=>setMode('numbers');
+  document.getElementById('mLyrics').onclick=()=>setMode('lyrics');
+  document.getElementById('col1').onclick=()=>setCols(1);
+  document.getElementById('col2').onclick=()=>setCols(2);
+  document.getElementById('szUp').onclick=()=>setSize(S.size+1);
+  document.getElementById('szDown').onclick=()=>setSize(S.size-1);
+  document.getElementById('pageBtn').onclick=e=>{S.page=!S.page;document.body.classList.toggle('pageMode',S.page);e.currentTarget.classList.toggle('on',S.page);render();};
+  document.getElementById('themeBtn').onclick=()=>{S.dark=!S.dark;document.body.classList.toggle('dark',S.dark);};
+  document.getElementById('printBtn').onclick=doPrint;
+  document.getElementById('toggleAside').onclick=()=>document.getElementById('aside').classList.toggle('hide');
+  document.getElementById('setSel').onchange=e=>{S.activeSet=e.target.value||null;if(S.activeSet){const songs=setSongs();S.selId=songs[0]?.id||S.selId;S.targetIdx=null;S.capo=0;}render();};
+  document.getElementById('newSet').onclick=newSet;
+  document.getElementById('delSet').onclick=delSet;
+  document.getElementById('addBtn').onclick=()=>openEditor(null);
+  document.getElementById('editBtn').onclick=()=>openEditor(curSong());
+  document.getElementById('expBtn').onclick=exportLib;
+  document.getElementById('impBtn').onclick=()=>document.getElementById('impFile').click();
+  document.getElementById('impFile').onchange=importLib;
+  document.getElementById('edK').innerHTML=KEYS.map(k=>'<option value="'+k.n+'">'+k.n+'</option>').join('');
+  document.getElementById('edCancel').onclick=()=>document.getElementById('editor').close();
+  document.getElementById('edSave').onclick=saveEditor;
+  document.getElementById('edDel').onclick=deleteEditor;
+  document.getElementById('pickCancel').onclick=()=>document.getElementById('picker').close();
+  document.getElementById('pickApply').onclick=applyPicker;
+}
+
+/* ===================== seed songs ===================== */
+const SEED=[
+{id:'firm-foundation',title:'Firm Foundation (He Won\u2019t)',artist:'Cody Carnes, Austin Davis, Chandler Moore',key:'G',credit:'CCLI #7188203 · © 2021 Capitol CMG Paragon / TBCO / Writer\u2019s Roof / A.L.K.D. · Used under CCLI #11287538.',sections:parseSong(
+`# Intro
+| [G] | [G] | [C] | [C] |
+# Chorus 1A
+Christ is my firm [Gsus]foun-[G]dation, the [Em7]rock on which I [D(4)]stand
+When ev'rything a-[Gsus]round me is [G]shaken, I've [Em7]never been more [D(4)]glad
+That I put my [C]faith in [G/B]Jesus, 'cause He's [Em7]never let me [D(4)]down
+He's faithful [C]through gener-[G/B]ations, so [Em7]why would He [D(4)]fail now
+# Interlude
+He [N.C.]won't, [G]He won't[Gsus]
+# Verse
+I've still got [Gsus]joy in [G]chaos, I've got [Em7]peace that makes no [D(4)]sense
+So, I won't be [C]go-[G/B]ing [Am]un-[G]der, I'm not [Em7]held by my own [D(4)]strength
+'Cause I've built my [C/E]life on [G/B]Jesus, He's [Em7]never [D/F#]let me [G]down[D(4)]
+He's faithful [C]in every [G/B]season, so [Em7]why would He [D(4)]fail now
+# Refrain
+He [N.C.]won't, [G]He won't, [Gsus]He won't [Em]fail[D] [Cmaj7]
+[Em]He won't [D]fail [G] [G/B] [Cmaj7]
+# Bridge
+(Oh,) [C]Rain came and [D]wind blew, but [G/B]my house was built on [Em]You[D]
+(And) I'm [C]safe with [D]You, I'm [G/B]going to make it [Em]through[D]
+# Chorus 1B
+Christ is my firm [Gsus]foun-[G]dation, the [Em7]rock on which I [D(4)]stand
+That I put my [C]faith in [G/B]Jesus, 'cause He's [Em7]never let me [D(4)]down
+# Ending
+He [N.C.]won't, [G]He won't, [Gsus]He won't [Em]fail,[D] [Cmaj7]
+[Em]He won't [D]fail, [G]no, He [G/B]won't [C] [G]`)},
+
+{id:'amazing-grace',title:'Amazing Grace',artist:'John Newton (public domain)',key:'G',credit:'Public domain.',sections:parseSong(
+`# Verse 1
+[G]Amazing [G7]grace, how [C]sweet the [G]sound
+That [G]saved a [Em]wretch like [D]me[D7]
+I [G]once was [G7]lost, but [C]now am [G]found
+Was [Em]blind, but [D]now I [G]see
+# Verse 2
+'Twas [G]grace that [G7]taught my [C]heart to [G]fear
+And [G]grace my [Em]fears re-[D]lieved[D7]
+How [G]precious [G7]did that [C]grace ap-[G]pear
+The [Em]hour I [D]first be-[G]lieved`)},
+
+{id:'the-same-jesus',title:'The Same Jesus',artist:'Matt Redman, Jacob Sooter, Josh Silverberg',key:'G',credit:'CCLI #7138933 · © 2019 River Wild / Hipgnosis Songs Essential / Jacob Sooter Music / So Essential Tunes / Vertical Church Band / Integrity Worship / Said And Done · Used under CCLI #11287538.',sections:parseSong(
+`# Intro  (Woah, woah)
+| [C] | [C] [G] | [D] | [D] [G/B] |
+# Verse 1
+[C]This Jesus that [Em]carried our [(D)]shame
+[D]This Jesus who [G/B]rose from the [(C)]grave
+[C]The same Jesus we [Em]worship to-[(D)]day
+[D]We worship to-[G/B]day
+# Verse 2
+[C]Came to us with [Em]grace and in [(D)]truth
+[D]Still with us and [G/B]still on the [(C)]move
+[C]The same Jesus [Em]He is making us [(D)]new
+[D]He is making us [G/B]new
+# Chorus
+[C]I know that my Redeemer [G]lives
+[D]I know that my Redeemer [G/B]lives
+[C]He's still keeping all His promis-[G]es
+[D]The same Jesus the [G/B]same Jesus
+# Interlude  (Woah, woah)
+| [C] | [C] [G] | [D] | [D] [G/B] |
+# Verse 3
+[C]He's commanding the [Em]wind and the [(D)]waves
+[D]His kingdom for-[G/B]ever shall [(C)]reign
+[C]We know that He is [Em]coming a-[(D)]gain
+[D]He is coming a-[G/B]gain   Oh
+# Bridge
+He's the [C]first and the last, the Be-[D]ginning and [G/B]End
+At the sound of His [C]cry all the [D]world came a-[G/B]live
+And He formed us from [C]dust, put His breath in our [D]lungs[G/B]
+We were made for His [C]love but we ran from the [D]light[G/B]
+But He wouldn't give [C]up on His daughters and [D]sons[G/B]
+So He took up the [C]cross and He laid down His [C/E]life
+And He did what He [D/F#]said when He rose from the [G/B]dead
+And He's coming back a-[C]gain
+# Ending  (Woah, woah)
+||: [C] | [C] [G] | [D] | [D] [G/B] :|| [C] |`)},
+
+{id:'goodness-of-god',title:'Goodness Of God',artist:'Jenn Johnson, Ed Cash, Jason Ingram, Ben Fielding, Brian Johnson',key:'F',credit:'CCLI #7117726 · © 2018 Capitol CMG Paragon / SHOUT! Music Publishing Australia / Fellow Ships / So Essential Tunes / Bethel Music · Used under CCLI #11287538.  (Also given in E — transpose down 1.)',sections:parseSong(
+`# Verse 1
+I love You [F]Lord oh Your [Bb]mercy never [F]fails me
+[C/E]All my [Dm7]days I've been [Bb]held in Your [C(4)]hands
+From the moment that I [Dm7]wake up [Bb]until I lay my [F]head [C/E][Dm7]
+I will [Bb]sing of the [C(4)]goodness of [F]God
+# Chorus
+[Bb2]All my life You have been [F]faithful
+[Bb2]All my life You have been [F]so so [C(4)]good
+[Bb2]With every breath that I am [F]able[C/E] [Dm7]
+(1.) I will [Bb2]sing of the [C(4)]goodness of [F]God
+(2.) I will [Bb2]sing of the [C(4)]goodness of [Dm7]God   (To Tag)
+# Verse 2
+I love Your [F]voice You have [Bb]led me through the [F]fire
+[C/E]In darkest [Dm7]night You are [Bb]close like no [C(4)]other
+I've known You as a [Dm7]father I've [Bb]known You as a [F]friend [C/E][Dm7]
+I have [Bb]lived in the [C(4)]goodness of [F]God
+# Bridge
+[F/A]Your goodness is [Bb2]running after it's [C(4)]running after [F]me
+[F/A]Your goodness is [Bb2]running after it's [C(4)]running after [F]me
+With my [F/A]life laid down I'm sur-[Bb2]rendered now I [C(4)]give You every-[Dm7]thing
+[F/A]Your goodness is [Bb2]running after it's [C(4)]running after [F]me
+# Tag
+I will [Bb2]sing of the [C(4)]goodness of [F]God`)},
+
+{id:'lord-i-need-you',title:'Lord I Need You',artist:'Christy Nockels, Daniel Carson, Jesse Reeves, Kristian Stanfill, Matt Maher',key:'C',credit:'CCLI #5925687 · © 2011 sixsteps Music / Sweater Weather / Thankyou Music / Valley Of Songs / worshiptogether.com songs · Used under CCLI #11287538.',sections:parseSong(
+`# Intro
+| [C] [F2(no3)] | [C] | [C] [F2(no3)] | [C] |
+# Verse 1
+[C]Lord I come I [F2(no3)]con-[C]fess
+[G/B]Bowing here I [Am7]find my [Gsus]rest [F2(no3)]
+And [C]without You I [F2(no3)]fall a-[C]part
+You're the [Gsus]one [G]that guides my [F2(no3)]heart
+# Chorus
+[C]Lord I need You oh [F]I [C]need [G/B]You
+[Am7]Ev'ry [F]hour I [C]need [G]You [(F)]
+My [C/E]one de-[F]fense my [C/G]righteous-[F/A]ness
+Oh [C/G]God [G]how I [C]need You [(F2(no3)) (C)]   (To Verse 2)
+# Verse 2
+Where sin runs [C]deep Your grace [F2(no3)]is [C]more
+[G/B]Where grace is [Am7]found is where [Gsus]You [F2(no3)]are
+And where You [C]are Lord I [F2(no3)]am [C]free
+[Gsus]Holi-[G]ness is Christ in [F2(no3)]me
+Where You [C]are Lord I [F2(no3)]am [C]free
+[Gsus]Holi-[G]ness is Christ in [C]me
+# Bridge
+So [F]teach my [C/E]song to [Gsus]rise to [Am7]You
+[Am7]When temptation [C/E]comes my [F2(no3)]way
+And when I [F]cannot [C/E]stand I'll [Gsus]fall on [Am7]You
+[F2(no3)]Jesus You're my [Gsus]hope and [C]stay
+# Chorus 2
+[C]Lord I need You oh [F]I [C]need [G/B]You
+[Am7]Ev'ry [F]hour I [C]need [G]You
+My [C/E]one de-[F]fense my [C/G]righteous-[F/A]ness
+Oh [C/G]God [G]how I [C]need You`)},
+
+{id:'worthy-of-it-all',title:'Worthy Of It All',artist:'David Brymer, Ryan Hall',key:'Bb',credit:'CCLI #6280644 · © 2012 Common Hymnal Publishing / Innerland / Underground Treasure / Wayfinder Music · Used under CCLI #11287538.  (Also given in G — transpose down 3.)',sections:parseSong(
+`# Verse
+[Eb]All the saints and [F]angels
+[Eb]They bow before Your [F]throne
+[Eb]All the elders cast their [F]crowns
+Before the [Eb]Lamb of [F]God and [Bb]sing
+# Chorus 1A
+You are worthy of it [Bb]all
+You are worthy of it [F]all
+For from You are all [Eb]things and to You are all [F]things
+You deserve the [Bb]glory
+# Interlude 1  (Singing oh, oh...)
+| [Eb] | [F] | [Eb] | [F] | [Eb] | [F] | [Eb] [F] | [Bb] |
+# Instrumental
+| [Bb] | [Dm7] | [Gm7] | [Eb2] |
+| [Bb/D] | [F] | [Cm7] | [Ebmaj7] |
+# Bridge
+[Bb]Day and night night and day let incense a-[Dm7]rise
+[Gm7]Day and night night and day let incense a-[Eb2]rise
+[Bb/F]Day and night night and day let incense a-[F]rise
+[Cm7]Day and night night and day let incense a-[Eb2]rise
+# Interlude 2  (Oh, oh...)
+| [Bb] | [Bb] | [F] | [F] | [Cm7] | [Eb2] | [Bb] | [Bb] |
+# Chorus 1B
+You are worthy of it [Bb]all (oh)
+You are worthy of it [Fsus]all [F](oh)
+For from You are all [Eb](oh) and to You are all [F](oh)
+You deserve the [Bb]glory (oh)`)}
+];
+
+const SEED_SETS=[{id:'set-2026-06-14',name:'Sunday — 14 Jun 2026',songIds:['the-same-jesus','goodness-of-god','lord-i-need-you','worthy-of-it-all']}];
+
+/* ===================== boot ===================== */
+function boot(){
+  wire();
+  const saved=store.load();
+  if(saved&&saved.library&&saved.library.length){library=saved.library;sets=saved.sets||[];}
+  else{library=SEED.slice();sets=SEED_SETS.slice();}
+  S.activeSet=sets.find(s=>s.id==='set-2026-06-14')?'set-2026-06-14':(sets[0]?sets[0].id:null);
+  const first=setSongs()[0];
+  S.selId=first?first.id:(library[0]?library[0].id:null);
+  setMode('names');setCols(2);setSize(18);
+  render();
+}
+boot();
+
+/* offline / installable */
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{});});}
+</script>
+</body>
+</html>

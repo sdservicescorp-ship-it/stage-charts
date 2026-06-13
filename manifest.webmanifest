@@ -1,0 +1,16 @@
+{
+  "name": "Stage Charts",
+  "short_name": "Charts",
+  "description": "Worship chord charts — transpose to any key, Nashville number system, one-page two-column print. Works offline.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#faf9f6",
+  "theme_color": "#1f6f78",
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
