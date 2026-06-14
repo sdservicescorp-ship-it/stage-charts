@@ -85,7 +85,7 @@
   .song-headR{display:flex;align-items:flex-end;gap:12px;flex:none}
   .keybadge{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:62px;padding:5px 12px 7px;border-radius:12px;background:var(--accent2);color:#fff;line-height:1}
   body.dark .keybadge{color:#0c1015}
-  .kb-label{font-family:'Inter',sans-serif;font-size:9px;font-weight:800;letter-spacing:.14em;opacity:.85;margin-bottom:1px}
+  .kb-label{font-family:'Inter',sans-serif;font-size:8.5px;font-weight:800;letter-spacing:.06em;opacity:.85;margin-bottom:1px;white-space:nowrap}
   .kb-val{font-family:'Inter',sans-serif;font-weight:800;font-size:28px;letter-spacing:-.02em}
   .keysub{font-family:'Inter',sans-serif;font-size:11px;color:var(--muted);text-align:right;line-height:1.45;max-width:150px}
   .keysub b{color:var(--accent2)}
@@ -98,7 +98,10 @@
   .ch{display:block;font-family:'Inter','Segoe UI',sans-serif;font-weight:700;font-size:.76em;color:var(--chord);height:1.32em;white-space:pre;letter-spacing:-.01em}
   .ch .rt{font-weight:800}
   .ch .sup{font-size:.7em;font-weight:700;vertical-align:.42em;letter-spacing:0;margin-left:.3px}
-  .ch .sl{font-weight:600;opacity:.65;margin:0 .5px}
+  .ch .sl{font-weight:600;opacity:.5;margin:0 .5px}
+  .ch .bass{font-size:.66em;font-weight:700;opacity:.58;vertical-align:-.06em}
+  .ch .bass .sl{font-weight:500;opacity:.6;margin:0}
+  body.numbers .ch .bass{color:var(--accent2)}
   .ch .paren{opacity:.82}
   .ch .nc{font-style:italic;font-weight:700;opacity:.8}
   body.numbers .ch{color:var(--accent)}
@@ -176,7 +179,7 @@
       <button class="btn sq" id="keyDown" title="Down a half-step">▼</button>
       <select class="btn key" id="keySel"></select>
       <button class="btn sq" id="keyUp" title="Up a half-step">▲</button>
-      <button class="btn sq" id="keyReset" title="Reset to chart key">↺</button>
+      <button class="btn sq" id="keyReset" title="Back to leader key">↺</button>
     </div>
     <div class="grp"><span class="lab">Capo</span><select class="btn" id="capoSel"></select></div>
     <div class="grp"><span class="lab">Show</span>
@@ -323,9 +326,9 @@ function parseLine(line){
 }
 
 /* ===================== state ===================== */
-const S={mode:'names',targetIdx:null,capo:0,cols:2,size:18,page:false,dark:false,selId:null,activeSet:null,setIdx:0,perform:false,search:''};
+const S={mode:'names',targetIdx:null,leaderIdx:null,capo:0,cols:2,size:18,page:false,dark:false,selId:null,activeSet:null,setIdx:0,perform:false,search:''};
 let library=[],sets=[],overrides={},seedVersion=0;
-const SEED_VERSION=3;   /* bump whenever a SEED song is corrected/added so installed apps refresh it */
+const SEED_VERSION=4;   /* bump whenever a SEED song is corrected/added so installed apps refresh it */
 const store={
   save(){try{localStorage.setItem('stagecharts_v1',JSON.stringify({library,sets,overrides,seedVersion}));}catch(e){}},
   load(){try{const s=localStorage.getItem('stagecharts_v1');if(s){const d=JSON.parse(s);return Array.isArray(d)?{library:d,sets:[],overrides:{},seedVersion:0}:{library:d.library||[],sets:d.sets||[],overrides:d.overrides||{},seedVersion:d.seedVersion||0};}}catch(e){}return null;}
@@ -357,7 +360,10 @@ function fmtOne(sym){
 }
 function fmtSymbol(disp){
   if(disp==='N.C.'||disp==='NC')return '<span class="nc">N.C.</span>';
-  return disp.split('/').map(fmtOne).join('<span class="sl">/</span>');
+  const parts=disp.split('/');
+  let html=fmtOne(parts[0]);
+  for(let i=1;i<parts.length;i++){html+='<span class="bass"><span class="sl">/</span>'+esc(parts[i])+'</span>';}
+  return html;
 }
 function chordHTML(cluster,fn){
   return cluster.split(/\s+/).map(t=>{
@@ -369,8 +375,8 @@ function chordHTML(cluster,fn){
   }).join(' ');
 }
 function shapeKeyName(tIdx,capo,flat){return idxNote(tIdx-capo,flat);}
-function renderPageHTML(song,tIdx,capo,mode){
-  const base=transformFor(song,tIdx,capo,mode);
+function renderPageHTML(song,leaderIdx,playIdx,capo,mode){
+  const base=transformFor(song,playIdx,capo,mode);
   let body='';
   song.sections.forEach(sec=>{
     body+='<div class="section">';
@@ -387,16 +393,16 @@ function renderPageHTML(song,tIdx,capo,mode){
     });
     body+='</div>';
   });
-  // header sub-line
+  // header sub-line — what YOU are reading, separate from the leader's anchored key
   const sub=[];
   if(mode==='numbers')sub.push('Nashville numbers');
-  if(capo>0&&mode==='names')sub.push('capo '+capo+' · play <b>'+esc(shapeKeyName(tIdx,capo,KEYS[tIdx].flat))+'</b> shapes');
-  if(tIdx!==keyIdx(song.key))sub.push('chart written in '+esc(song.key));
+  if(playIdx!==leaderIdx)sub.push('you\u2019re reading in <b>'+esc(KEYS[playIdx].n)+'</b>');
+  if(capo>0&&mode==='names')sub.push('capo '+capo+' · play <b>'+esc(shapeKeyName(playIdx,capo,KEYS[playIdx].flat))+'</b> shapes');
   const subHtml=sub.length?'<div class="keysub">'+sub.join('<br>')+'</div>':'';
   return '<div class="page"><div class="song-head"><div><div class="song-title">'+esc(song.title)+'</div>'
     +(song.artist?'<div class="song-sub">'+esc(song.artist)+'</div>':'')+'</div>'
     +'<div class="song-headR">'+subHtml
-    +'<div class="keybadge"><div class="kb-label">KEY</div><div class="kb-val">'+esc(KEYS[tIdx].n)+'</div></div></div></div>'
+    +'<div class="keybadge"><div class="kb-label">LEADER KEY</div><div class="kb-val">'+esc(KEYS[leaderIdx].n)+'</div></div></div></div>'
     +'<div class="song">'+body+'</div>'
     +(song.credit?'<div class="credit">'+esc(song.credit)+'</div>':'')+'</div>';
 }
@@ -404,10 +410,10 @@ function render(){
   const stage=document.getElementById('stage');
   if(!library.length){stage.innerHTML='<div class="empty"><h2>No songs yet</h2><p>Tap “＋ Add song”, or Restore a backup.</p></div>';renderList();return;}
   const song=curSong();
-  if(S.targetIdx===null)S.targetIdx=keyIdx(song.key);
+  if(S.targetIdx===null||S.leaderIdx===null)loadSongState(song.id);
   document.getElementById('keySel').value=S.targetIdx;
   document.getElementById('capoSel').value=S.capo;
-  stage.innerHTML=renderPageHTML(song,S.targetIdx,S.capo,S.mode);
+  stage.innerHTML=renderPageHTML(song,S.leaderIdx,S.targetIdx,S.capo,S.mode);
   if(S.page)fitPage();
   renderSetSelect();renderSetbar();renderList();
 }
@@ -435,10 +441,26 @@ function renderSetbar(){
   document.getElementById('nextSong').onclick=()=>gotoSet(idx+1);
 }
 function gotoSet(i){const songs=setSongs();if(i<0||i>=songs.length)return;openSong(songs[i].id);}
-function songState(id){const st=activeSetObj();if(st&&st.keys&&st.keys[id])return st.keys[id];if(overrides[id])return overrides[id];return null;}
-function loadSongState(id){S.selId=id;const s=byId(id);const ov=songState(id);S.targetIdx=ov?ov.targetIdx:keyIdx(s.key);S.capo=ov?ov.capo:0;}
-function saveOverride(id){const s=byId(id);if(!s)return;const isDef=(S.targetIdx===keyIdx(s.key)&&S.capo===0);const st=activeSetObj();const val={targetIdx:S.targetIdx,capo:S.capo};if(st){st.keys=st.keys||{};if(isDef)delete st.keys[id];else st.keys[id]=val;}else{if(isDef)delete overrides[id];else overrides[id]=val;}persist();}
-function setSongKey(id,tIdx){const cur=songState(id);const capo=cur?cur.capo:0;const s=byId(id);const st=activeSetObj();const isDef=(tIdx===keyIdx(s.key)&&capo===0);const val={targetIdx:tIdx,capo:capo};if(st){st.keys=st.keys||{};if(isDef)delete st.keys[id];else st.keys[id]=val;}else{if(isDef)delete overrides[id];else overrides[id]=val;}persist();if(id===S.selId)loadSongState(id);rerender();}
+function readOv(id){const st=activeSetObj();return (st&&st.keys&&st.keys[id])?st.keys[id]:overrides[id];}
+function resolveState(id){
+  const s=byId(id);const base=keyIdx(s.key);const ov=readOv(id);
+  if(!ov)return {leader:base,play:base,capo:0};
+  const leader=(ov.leader!=null)?ov.leader:(ov.targetIdx!=null?ov.targetIdx:base);
+  const play=(ov.play!=null)?ov.play:(ov.targetIdx!=null?ov.targetIdx:leader);
+  return {leader:leader,play:play,capo:ov.capo||0};
+}
+function writeOv(id,leader,play,capo){
+  const s=byId(id);if(!s)return;const base=keyIdx(s.key);
+  const isDef=(leader===base&&play===base&&capo===0);
+  const val={leader:leader,play:play,capo:capo};
+  const st=activeSetObj();
+  if(st){st.keys=st.keys||{};if(isDef)delete st.keys[id];else st.keys[id]=val;}
+  else{if(isDef)delete overrides[id];else overrides[id]=val;}
+  persist();
+}
+function loadSongState(id){S.selId=id;const r=resolveState(id);S.leaderIdx=r.leader;S.targetIdx=r.play;S.capo=r.capo;}
+function savePlay(){writeOv(S.selId,S.leaderIdx,S.targetIdx,S.capo);}                 // top controls: change your reading, keep leader anchor
+function setLeaderKey(id,idx){const r=resolveState(id);writeOv(id,idx,idx,0);if(id===S.selId)loadSongState(id);rerender();}  // sidebar: anchor + rebase reading
 function rerender(){if(S.perform)renderPerform();else render();}
 function openSong(id){loadSongState(id);rerender();}
 
@@ -458,8 +480,8 @@ function exitPerform(){
 function performGo(dir){const list=navList();const i=list.findIndex(s=>s.id===S.selId)+dir;if(i<0||i>=list.length)return;openSong(list[i].id);showPbar();}
 function renderPerform(){
   const song=curSong();if(!song)return;
-  if(S.targetIdx===null)S.targetIdx=keyIdx(song.key);
-  document.getElementById('performPage').innerHTML=renderPageHTML(song,S.targetIdx,S.capo,S.mode);
+  if(S.targetIdx===null||S.leaderIdx===null)loadSongState(song.id);
+  document.getElementById('performPage').innerHTML=renderPageHTML(song,S.leaderIdx,S.targetIdx,S.capo,S.mode);
   const list=navList();const i=list.findIndex(s=>s.id===S.selId);
   document.getElementById('ppos').textContent=(i+1)+' / '+list.length;
   document.getElementById('pKey').textContent=(S.mode==='numbers')?'#':KEYS[S.targetIdx].n;
@@ -480,7 +502,7 @@ function renderList(){
   if(S.activeSet){
     const songs=setSongs();
     el.innerHTML='<div class="listhead">In this set · tap a key to anchor the leader\u2019s key</div>'
-      +songs.map((s,i)=>{const ki=(songState(s.id)?songState(s.id).targetIdx:keyIdx(s.key));
+      +songs.map((s,i)=>{const ki=resolveState(s.id).leader;
         return '<div class="song-item'+(s.id===S.selId?' sel':'')+'" data-id="'+s.id+'">'
         +'<span class="num">'+(i+1)+'</span><div class="meta"><div class="t">'+esc(s.title)+'</div><div class="a">'+esc(s.artist||'')+'</div></div>'
         +'<select class="kpick" data-key="'+s.id+'">'+keyOptions(ki)+'</select>'
@@ -488,7 +510,7 @@ function renderList(){
         +'<button class="ic x" data-rm="'+s.id+'">✕</button></div>';}).join('')
       +'<div style="padding:12px 14px"><button class="btn" id="addToSet">＋ Add songs from library</button></div>';
     el.querySelectorAll('.song-item').forEach(n=>n.onclick=e=>{if(e.target.closest('.ic')||e.target.closest('.kpick'))return;openSong(n.dataset.id);if(window.innerWidth<=720)document.getElementById('aside').classList.add('hide');});
-    el.querySelectorAll('.kpick').forEach(sel=>sel.onchange=()=>setSongKey(sel.dataset.key,+sel.value));
+    el.querySelectorAll('.kpick').forEach(sel=>sel.onchange=()=>setLeaderKey(sel.dataset.key,+sel.value));
     el.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>moveInSet(b.dataset.up,-1));
     el.querySelectorAll('[data-down]').forEach(b=>b.onclick=()=>moveInSet(b.dataset.down,1));
     el.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>removeFromSet(b.dataset.rm));
@@ -540,9 +562,8 @@ function doPrint(){
   const songs=S.activeSet?setSongs():[curSong()];
   root.classList.toggle('multi',songs.length>1);
   root.innerHTML=songs.map(s=>{
-    const tIdx=S.activeSet?keyIdx(s.key):S.targetIdx;
-    const capo=S.activeSet?0:S.capo;
-    return renderPageHTML(s,tIdx,capo,S.mode);
+    if(S.activeSet){const r=resolveState(s.id);return renderPageHTML(s,r.leader,r.play,r.capo,S.mode);}
+    return renderPageHTML(s,S.leaderIdx,S.targetIdx,S.capo,S.mode);
   }).join('');
   window.print();
 }
@@ -574,13 +595,13 @@ function importLib(e){const f=e.target.files[0];if(!f)return;const r=new FileRea
 function wire(){
   const keySel=document.getElementById('keySel');
   keySel.innerHTML=KEYS.map((k,i)=>'<option value="'+i+'">'+k.n+'</option>').join('');
-  keySel.onchange=()=>{S.targetIdx=+keySel.value;saveOverride(S.selId);rerender();};
-  document.getElementById('keyUp').onclick=()=>{S.targetIdx=(S.targetIdx+1)%12;saveOverride(S.selId);rerender();};
-  document.getElementById('keyDown').onclick=()=>{S.targetIdx=(S.targetIdx+11)%12;saveOverride(S.selId);rerender();};
-  document.getElementById('keyReset').onclick=()=>{const s=curSong();if(!s)return;S.targetIdx=keyIdx(s.key);S.capo=0;saveOverride(S.selId);rerender();};
+  keySel.onchange=()=>{S.targetIdx=+keySel.value;savePlay();rerender();};
+  document.getElementById('keyUp').onclick=()=>{S.targetIdx=(S.targetIdx+1)%12;savePlay();rerender();};
+  document.getElementById('keyDown').onclick=()=>{S.targetIdx=(S.targetIdx+11)%12;savePlay();rerender();};
+  document.getElementById('keyReset').onclick=()=>{S.targetIdx=S.leaderIdx;S.capo=0;savePlay();rerender();};
   const capo=document.getElementById('capoSel');
   capo.innerHTML=Array.from({length:8},(_,i)=>'<option value="'+i+'">'+(i===0?'none':i)+'</option>').join('');
-  capo.onchange=()=>{S.capo=+capo.value;saveOverride(S.selId);rerender();};
+  capo.onchange=()=>{S.capo=+capo.value;savePlay();rerender();};
   document.getElementById('mNames').onclick=()=>setMode('names');
   document.getElementById('mNumbers').onclick=()=>setMode('numbers');
   document.getElementById('mLyrics').onclick=()=>setMode('lyrics');
@@ -605,11 +626,11 @@ function wire(){
   document.getElementById('pExit').onclick=exitPerform;
   document.getElementById('pPrev').onclick=()=>performGo(-1);
   document.getElementById('pNext').onclick=()=>performGo(1);
-  document.getElementById('pKeyUp').onclick=()=>{S.targetIdx=(S.targetIdx+1)%12;saveOverride(S.selId);renderPerform();showPbar();};
-  document.getElementById('pKeyDown').onclick=()=>{S.targetIdx=(S.targetIdx+11)%12;saveOverride(S.selId);renderPerform();showPbar();};
+  document.getElementById('pKeyUp').onclick=()=>{S.targetIdx=(S.targetIdx+1)%12;savePlay();renderPerform();showPbar();};
+  document.getElementById('pKeyDown').onclick=()=>{S.targetIdx=(S.targetIdx+11)%12;savePlay();renderPerform();showPbar();};
   const pcap=document.getElementById('pCapo');
   pcap.innerHTML=Array.from({length:8},(_,i)=>'<option value="'+i+'">'+(i===0?'capo 0':'capo '+i)+'</option>').join('');
-  pcap.onchange=()=>{S.capo=+pcap.value;saveOverride(S.selId);renderPerform();showPbar();};
+  pcap.onchange=()=>{S.capo=+pcap.value;savePlay();renderPerform();showPbar();};
   const ps=document.getElementById('perform');let tsx=0,tsy=0,tst=0;
   ps.addEventListener('touchstart',e=>{tsx=e.changedTouches[0].clientX;tsy=e.changedTouches[0].clientY;tst=Date.now();},{passive:true});
   ps.addEventListener('touchend',e=>{
@@ -721,8 +742,8 @@ I love You [G]Lord oh Your [C]mercy never [G]fails me
 From the moment that I [Em7]wake up [C]until I lay [G]my [D/F#]head [Em7]
 I will [C]sing of the [D(4)]goodness of [G]God [G/B] [D/F#] [G]
 # Chorus
-[C2]All my life You have been [G]faithful [D/F#] [G/B]
-[C2]All my life You have been [G]so so [D(4)]good [G/B]
+[C2]All my life You have been [G]faithful [D/F#] [G/B] [C]
+[C2]All my life You have been [G]so so good [D/F#] [G/B] [C]
 [C2]With every breath that I am [G]able [D/F#] [Em7]
 (1.) I will [C2]sing of the [D(4)]goodness of [G]God [G/B] [D/F#] [Em]
 (2.) I will [C2]sing of the [D(4)]goodness of [Em7]God [Em] [G] [C] [G/B]   (To Tag)
