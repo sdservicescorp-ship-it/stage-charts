@@ -324,11 +324,16 @@ function parseLine(line){
 
 /* ===================== state ===================== */
 const S={mode:'names',targetIdx:null,capo:0,cols:2,size:18,page:false,dark:false,selId:null,activeSet:null,setIdx:0,perform:false,search:''};
-let library=[],sets=[],overrides={};
+let library=[],sets=[],overrides={},seedVersion=0;
+const SEED_VERSION=2;   /* bump whenever a SEED song is corrected/added so installed apps refresh it */
 const store={
-  save(){try{localStorage.setItem('stagecharts_v1',JSON.stringify({library,sets,overrides}));}catch(e){}},
-  load(){try{const s=localStorage.getItem('stagecharts_v1');if(s){const d=JSON.parse(s);return Array.isArray(d)?{library:d,sets:[],overrides:{}}:{library:d.library||[],sets:d.sets||[],overrides:d.overrides||{}};}}catch(e){}return null;}
+  save(){try{localStorage.setItem('stagecharts_v1',JSON.stringify({library,sets,overrides,seedVersion}));}catch(e){}},
+  load(){try{const s=localStorage.getItem('stagecharts_v1');if(s){const d=JSON.parse(s);return Array.isArray(d)?{library:d,sets:[],overrides:{},seedVersion:0}:{library:d.library||[],sets:d.sets||[],overrides:d.overrides||{},seedVersion:d.seedVersion||0};}}catch(e){}return null;}
 };
+function mergeSeed(){
+  SEED.forEach(seed=>{const i=library.findIndex(s=>s.id===seed.id);if(i>=0)library[i]=seed;else library.push(seed);});
+  SEED_SETS.forEach(ss=>{if(!sets.find(x=>x.id===ss.id))sets.push(ss);});
+}
 function persist(){store.save();}
 function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
 function byId(id){return library.find(s=>s.id===id);}
@@ -562,8 +567,8 @@ function saveEditor(){
   S.selId=obj.id;S.targetIdx=null;S.capo=0;persist();document.getElementById('editor').close();render();
 }
 function deleteEditor(){if(!editingId)return;if(!confirm('Delete this song?'))return;library=library.filter(s=>s.id!==editingId);sets.forEach(st=>st.songIds=st.songIds.filter(x=>x!==editingId));delete overrides[editingId];S.selId=library[0]?.id||null;S.targetIdx=null;persist();document.getElementById('editor').close();render();}
-function exportLib(){const blob=new Blob([JSON.stringify({library,sets,overrides},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='stage-charts-backup.json';a.click();}
-function importLib(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d)){library=d;sets=[];overrides={};}else{library=d.library||[];sets=d.sets||[];overrides=d.overrides||{};}S.selId=library[0]?.id;S.activeSet=null;S.targetIdx=null;persist();render();}catch(err){alert('That file could not be read.');}};r.readAsText(f);}
+function exportLib(){const blob=new Blob([JSON.stringify({library,sets,overrides,seedVersion},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='stage-charts-backup.json';a.click();}
+function importLib(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d)){library=d;sets=[];overrides={};}else{library=d.library||[];sets=d.sets||[];overrides=d.overrides||{};seedVersion=d.seedVersion||seedVersion;}S.selId=library[0]?.id;S.activeSet=null;S.targetIdx=null;persist();render();}catch(err){alert('That file could not be read.');}};r.readAsText(f);}
 
 /* ===================== wiring ===================== */
 function wire(){
@@ -731,36 +736,40 @@ With my [F/A]life laid down I'm sur-[Bb2]rendered now I [C(4)]give You every-[Dm
 # Tag
 I will [Bb2]sing of the [C(4)]goodness of [F]God`)},
 
-{id:'lord-i-need-you',title:'Lord I Need You',artist:'Christy Nockels, Daniel Carson, Jesse Reeves, Kristian Stanfill, Matt Maher',key:'C',credit:'CCLI #5925687 · © 2011 sixsteps Music / Sweater Weather / Thankyou Music / Valley Of Songs / worshiptogether.com songs · Used under CCLI #11287538.',sections:parseSong(
+{id:'lord-i-need-you',title:'Lord I Need You',artist:'Christy Nockels, Daniel Carson, Jesse Reeves, Kristian Stanfill, Matt Maher',key:'G',credit:'CCLI #5925687 · © 2011 sixsteps Music / Sweater Weather / Thankyou Music / Valley Of Songs / worshiptogether.com songs · Used under CCLI #11287538.',sections:parseSong(
 `# Intro
-| [C] [F2(no3)] | [C] | [C] [F2(no3)] | [C] |
+[G] [C2(no3)] [G] [C2(no3)] [G]
 # Verse 1
-[C]Lord I come I [F2(no3)]con-[C]fess
-[G/B]Bowing here I [Am7]find my [Gsus]rest [F2(no3)]
-And [C]without You I [F2(no3)]fall a-[C]part
-You're the [Gsus]one [G]that guides my [F2(no3)]heart
-# Chorus
-[C]Lord I need You oh [F]I [C]need [G/B]You
-[Am7]Ev'ry [F]hour I [C]need [G]You [(F)]
-My [C/E]one de-[F]fense my [C/G]righteous-[F/A]ness
-Oh [C/G]God [G]how I [C]need You [(F2(no3)) (C)]   (To Verse 2)
+Lord I [G]come [C2(no3)]I [G]confess
+[D/F#]Bowing [Em7]here I [Dsus]find [C2(no3)]my rest
+And without [G]You I [C2(no3)]fall [G]apart
+You're the [Dsus]one [D]that guides my [C2(no3)]heart
+# Chorus 1
+Lord I [G]need You [C]oh I [G]need [D/F#]You
+[Em7]Ev'ry [C]hour I [G]need [D]You [(C)]
+My [G/B]one de-[C]fense my [G/D]righteous-[C/E]ness
+Oh [G/D]God how I [D]need [G]You [C2(no3)] [G]   (To Bridge / Chorus 2)
 # Verse 2
-Where sin runs [C]deep Your grace [F2(no3)]is [C]more
-[G/B]Where grace is [Am7]found is where [Gsus]You [F2(no3)]are
-And where You [C]are Lord I [F2(no3)]am [C]free
-[Gsus]Holi-[G]ness is Christ in [F2(no3)]me
-Where You [C]are Lord I [F2(no3)]am [C]free
-[Gsus]Holi-[G]ness is Christ in [C]me
+Where sin runs [G]deep Your [C2(no3)]grace [G]is more
+Where [D/F#]grace is [Em7]found is [Dsus]where [C2(no3)]You are
+And where You [G]are Lord [C2(no3)]I [G]am free
+[Dsus]Holi-ness [D]is [C2(no3)]Christ in me
+Where You [G]are Lord [C2(no3)]I [G]am free
+[Dsus]Holi-ness [D]is [G]Christ in me
 # Bridge
-So [F]teach my [C/E]song to [Gsus]rise to [Am7]You
-[Am7]When temptation [C/E]comes my [F2(no3)]way
-And when I [F]cannot [C/E]stand I'll [Gsus]fall on [Am7]You
-[F2(no3)]Jesus You're my [Gsus]hope and [C]stay
+So [C]teach my [G/B]song to [Dsus]rise to [Em7]You
+When temptation [G/B]comes my [C2(no3)]way
+And when I [C]cannot [G/B]stand I'll [Dsus]fall on [Em7]You
+[C2(no3)]Jesus You're my [Dsus]hope and [G]stay
+And when I [C]cannot [G/B]stand I'll [Dsus]fall on [Em7]You
+[C2(no3)]Jesus You're my [Dsus]hope and [G]stay
 # Chorus 2
-[C]Lord I need You oh [F]I [C]need [G/B]You
-[Am7]Ev'ry [F]hour I [C]need [G]You
-My [C/E]one de-[F]fense my [C/G]righteous-[F/A]ness
-Oh [C/G]God [G]how I [C]need You`)},
+Lord I [G]need You oh I need [D/F#]You
+[Em7]Ev'ry [C]hour I [G]need [D]You
+My [G/B]one de-[C]fense my [G/D]righteous-[C/E]ness
+Oh [G/D]God how I [D]need [G]You
+My [G/B]one de-[C]fense my [G/D]righteous-[C/E]ness
+Oh [G/D]God how I [D]need [G]You`)},
 
 {id:'worthy-of-it-all',title:'Worthy Of It All',artist:'David Brymer, Ryan Hall',key:'Bb',credit:'CCLI #6280644 · © 2012 Common Hymnal Publishing / Innerland / Underground Treasure / Wayfinder Music · Used under CCLI #11287538.  (Also given in G — transpose down 3.)',sections:parseSong(
 `# Verse
@@ -798,8 +807,12 @@ const SEED_SETS=[{id:'set-2026-06-14',name:'Sunday — 14 Jun 2026',songIds:['th
 function boot(){
   wire();
   const saved=store.load();
-  if(saved&&saved.library&&saved.library.length){library=saved.library;sets=saved.sets||[];overrides=saved.overrides||{};}
-  else{library=SEED.slice();sets=SEED_SETS.slice();overrides={};}
+  if(saved&&saved.library&&saved.library.length){
+    library=saved.library;sets=saved.sets||[];overrides=saved.overrides||{};seedVersion=saved.seedVersion||0;
+    if(seedVersion<SEED_VERSION){mergeSeed();seedVersion=SEED_VERSION;persist();}
+  }else{
+    library=SEED.slice();sets=SEED_SETS.slice();overrides={};seedVersion=SEED_VERSION;persist();
+  }
   S.activeSet=sets.find(s=>s.id==='set-2026-06-14')?'set-2026-06-14':(sets[0]?sets[0].id:null);
   const first=setSongs()[0]||library[0];
   if(first)loadSongState(first.id);
