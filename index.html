@@ -325,7 +325,7 @@ function parseLine(line){
 /* ===================== state ===================== */
 const S={mode:'names',targetIdx:null,capo:0,cols:2,size:18,page:false,dark:false,selId:null,activeSet:null,setIdx:0,perform:false,search:''};
 let library=[],sets=[],overrides={},seedVersion=0;
-const SEED_VERSION=2;   /* bump whenever a SEED song is corrected/added so installed apps refresh it */
+const SEED_VERSION=3;   /* bump whenever a SEED song is corrected/added so installed apps refresh it */
 const store={
   save(){try{localStorage.setItem('stagecharts_v1',JSON.stringify({library,sets,overrides,seedVersion}));}catch(e){}},
   load(){try{const s=localStorage.getItem('stagecharts_v1');if(s){const d=JSON.parse(s);return Array.isArray(d)?{library:d,sets:[],overrides:{},seedVersion:0}:{library:d.library||[],sets:d.sets||[],overrides:d.overrides||{},seedVersion:d.seedVersion||0};}}catch(e){}return null;}
@@ -711,30 +711,33 @@ And He's coming back a-[C]gain
 # Ending  (Woah, woah)
 ||: [C] | [C] [G] | [D] | [D] [G/B] :|| [C] |`)},
 
-{id:'goodness-of-god',title:'Goodness Of God',artist:'Jenn Johnson, Ed Cash, Jason Ingram, Ben Fielding, Brian Johnson',key:'F',credit:'CCLI #7117726 · © 2018 Capitol CMG Paragon / SHOUT! Music Publishing Australia / Fellow Ships / So Essential Tunes / Bethel Music · Used under CCLI #11287538.  (Also given in E — transpose down 1.)',sections:parseSong(
-`# Verse 1
-I love You [F]Lord oh Your [Bb]mercy never [F]fails me
-[C/E]All my [Dm7]days I've been [Bb]held in Your [C(4)]hands
-From the moment that I [Dm7]wake up [Bb]until I lay my [F]head [C/E][Dm7]
-I will [Bb]sing of the [C(4)]goodness of [F]God
+{id:'goodness-of-god',title:'Goodness Of God',artist:'Jenn Johnson, Ed Cash, Jason Ingram, Ben Fielding, Brian Johnson — CeCe Winans arrangement',key:'G',credit:'CCLI #7117726 · © 2018 Capitol CMG Paragon / SHOUT! Music Publishing Australia / Fellow Ships / So Essential Tunes / Bethel Music · CeCe Winans arrangement · Used under CCLI #11287538.',sections:parseSong(
+`# Intro
+[G] [G/B] [D/F#] [Em]
+[Em] [C] [G] [G/B]
+# Verse 1
+I love You [G]Lord oh Your [C]mercy never [G]fails me
+[D/F#]All my [Em7]days I've been [C]held in Your [D(4)]hands
+From the moment that I [Em7]wake up [C]until I lay [G]my [D/F#]head [Em7]
+I will [C]sing of the [D(4)]goodness of [G]God [G/B] [D/F#] [G]
 # Chorus
-[Bb2]All my life You have been [F]faithful
-[Bb2]All my life You have been [F]so so [C(4)]good
-[Bb2]With every breath that I am [F]able[C/E] [Dm7]
-(1.) I will [Bb2]sing of the [C(4)]goodness of [F]God
-(2.) I will [Bb2]sing of the [C(4)]goodness of [Dm7]God   (To Tag)
+[C2]All my life You have been [G]faithful [D/F#] [G/B]
+[C2]All my life You have been [G]so so [D(4)]good [G/B]
+[C2]With every breath that I am [G]able [D/F#] [Em7]
+(1.) I will [C2]sing of the [D(4)]goodness of [G]God [G/B] [D/F#] [Em]
+(2.) I will [C2]sing of the [D(4)]goodness of [Em7]God [Em] [G] [C] [G/B]   (To Tag)
 # Verse 2
-I love Your [F]voice You have [Bb]led me through the [F]fire
-[C/E]In darkest [Dm7]night You are [Bb]close like no [C(4)]other
-I've known You as a [Dm7]father I've [Bb]known You as a [F]friend [C/E][Dm7]
-I have [Bb]lived in the [C(4)]goodness of [F]God
+I love Your [G]voice You have [C]led me through the [G]fire
+In [D/F#]darkest [Em7]night You are [C]close like no [D(4)]other
+I've known You as a [Em7]father [C]I've known You as [G]a [D/F#]friend [Em7]
+I have [C]lived in the [D(4)]goodness of [G]God [G/B] [D/F#] [G]
 # Bridge
-[F/A]Your goodness is [Bb2]running after it's [C(4)]running after [F]me
-[F/A]Your goodness is [Bb2]running after it's [C(4)]running after [F]me
-With my [F/A]life laid down I'm sur-[Bb2]rendered now I [C(4)]give You every-[Dm7]thing
-[F/A]Your goodness is [Bb2]running after it's [C(4)]running after [F]me
+[G/B]Your goodness is [C2]running after it's [D(4)]running after [G]me
+[G/B]Your goodness is [C2]running after it's [D(4)]running after [G]me
+With my [G/B]life laid down I'm sur-[C2]rendered now I [D(4)]give You every-[Em7]thing
+[G/B]Your goodness is [C2]running after it's [D(4)]running after [G]me
 # Tag
-I will [Bb2]sing of the [C(4)]goodness of [F]God`)},
+I will [C2]sing of the [D(4)]goodness of [G]God`)},
 
 {id:'lord-i-need-you',title:'Lord I Need You',artist:'Christy Nockels, Daniel Carson, Jesse Reeves, Kristian Stanfill, Matt Maher',key:'G',credit:'CCLI #5925687 · © 2011 sixsteps Music / Sweater Weather / Thankyou Music / Valley Of Songs / worshiptogether.com songs · Used under CCLI #11287538.',sections:parseSong(
 `# Intro
