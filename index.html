@@ -95,13 +95,17 @@
   .sec-label{font-family:'Inter',sans-serif;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
   .ln{line-height:1.05;margin:1px 0}
   .u{display:inline-block;vertical-align:bottom}
-  .ch{display:block;font-family:'Inter','Segoe UI',sans-serif;font-weight:700;font-size:.76em;color:var(--chord);height:1.32em;white-space:pre;letter-spacing:-.01em}
-  .ch .rt{font-weight:800}
-  .ch .sup{font-size:.7em;font-weight:700;vertical-align:.42em;letter-spacing:0;margin-left:.3px}
+  .ch{display:block;font-family:'Inter','Segoe UI',sans-serif;font-weight:700;font-size:calc(.76em * var(--chord-scale,1));color:var(--chord);height:1.34em;white-space:pre;letter-spacing:-.01em}
+  .ch .rt{font-weight:var(--rt-weight,800)}
+  .ch .sup{font-size:calc(var(--sup-size,.7) * 1em);font-weight:var(--sup-weight,700);vertical-align:.42em;letter-spacing:0;margin-left:.3px}
   .ch .sl{font-weight:600;opacity:.5;margin:0 .5px}
-  .ch .bass{font-size:.66em;font-weight:700;opacity:.58;vertical-align:-.06em}
-  .ch .bass .sl{font-weight:500;opacity:.6;margin:0}
+  .ch .bass{font-size:calc(var(--bass-size,.66) * 1em);font-weight:var(--bass-weight,700);opacity:var(--bass-opacity,.58);vertical-align:-.06em}
+  .ch .bass .sl{font-weight:inherit;opacity:.7;margin:0}
   body.numbers .ch .bass{color:var(--accent2)}
+  body.bass-teal .ch .bass{color:var(--accent2)}
+  body.bass-amber .ch .bass{color:var(--accent)}
+  body.bass-red .ch .bass{color:#d23b2e}
+  body.dark.bass-red .ch .bass{color:#ff6b5e}
   .ch .paren{opacity:.82}
   .ch .nc{font-style:italic;font-weight:700;opacity:.8}
   body.numbers .ch{color:var(--accent)}
@@ -125,6 +129,19 @@
   .row2{display:grid;grid-template-columns:1fr 1fr 130px;gap:10px}
   .modal-foot{display:flex;justify-content:space-between;gap:8px;padding:0 20px 20px;flex-wrap:wrap}
   .hint{font-size:12px;color:var(--muted);line-height:1.5;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:12px}
+  .stPrev{display:flex;align-items:flex-end;justify-content:center;gap:18px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:16px 10px;margin-bottom:16px;min-height:54px}
+  .stPrev .ch{display:inline-block;position:static;font-size:calc(22px * var(--chord-scale,1));height:auto}
+  .stSec{font-family:'Inter',sans-serif;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin:14px 0 8px}
+  .stRow{display:grid;grid-template-columns:88px 1fr;align-items:center;gap:10px;margin-bottom:10px}
+  .stRow>label{font-family:'Inter',sans-serif;font-size:13px;color:var(--ink)}
+  .stRow input[type=range]{width:100%;accent-color:var(--accent2)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg button{appearance:none;border:none;background:var(--panel);color:var(--ink);font-family:'Inter',sans-serif;font-size:13px;padding:6px 12px;cursor:pointer}
+  .seg button.on{background:var(--accent2);color:#fff}
+  body.dark .seg button.on{color:#0c1015}
+  .swatches{display:inline-flex;gap:6px}
+  .sw{width:26px;height:26px;border-radius:7px;border:2px solid var(--line);cursor:pointer;display:inline-block}
+  .sw.on{border-color:var(--ink)}
   .hint code{background:color-mix(in srgb,var(--accent2) 14%,transparent);padding:1px 5px;border-radius:4px;font-size:11.5px}
   .pick{display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid var(--line)}
   .pick input{width:20px;height:20px}
@@ -195,6 +212,7 @@
       <button class="btn sq" id="szDown">A−</button><button class="btn sq" id="szUp">A+</button>
     </div>
     <button class="btn sq" id="pageBtn" title="Fit to one page">📄</button>
+    <button class="btn sq" id="styleBtn" title="Chord display style">Aa</button>
     <button class="btn sq" id="themeBtn" title="Light / dark">◐</button>
     <button class="btn sq" id="performBtn" title="Full-screen performance mode">⛶</button>
     <button class="btn" id="printBtn">⎙ Print / PDF</button>
@@ -212,6 +230,7 @@
     </div>
     <div id="list"></div>
     <div class="aside-foot">
+      <button class="btn on" id="styleBtn2" style="width:100%;justify-content:center">Aa &nbsp;Chord display style</button>
       <button class="btn" id="addBtn">＋ Add song</button>
       <button class="btn" id="editBtn">✎ Edit</button>
       <button class="btn" id="expBtn">⬇ Backup</button>
@@ -233,6 +252,31 @@
     <button class="pbtn" id="pNext">Next ›</button>
   </div>
 </div>
+
+<dialog id="styler" class="ui">
+  <div class="modal-h">Chord display</div>
+  <div class="modal-b">
+    <div class="stPrev" id="stPrev"></div>
+    <div class="stRow"><label>Chord size</label><input type="range" id="stScale" min="0.8" max="1.4" step="0.05"></div>
+    <div class="stSec">Slash bass note &nbsp;(the /3 in 1/3)</div>
+    <div class="stRow"><label>Size</label><input type="range" id="stBassSize" min="0.5" max="1.0" step="0.02"></div>
+    <div class="stRow"><label>Weight</label><span class="seg" id="stBassWeight"><button data-w="500">Normal</button><button data-w="700">Bold</button><button data-w="800">Heavy</button></span></div>
+    <div class="stRow"><label>Visibility</label><input type="range" id="stBassOpacity" min="0.4" max="1.0" step="0.05"></div>
+    <div class="stRow"><label>Colour</label><span class="swatches" id="stBassColor">
+      <span class="sw" data-c="auto" title="Match chord"></span>
+      <span class="sw" data-c="teal" title="Teal" style="background:var(--accent2)"></span>
+      <span class="sw" data-c="amber" title="Orange" style="background:var(--accent)"></span>
+      <span class="sw" data-c="red" title="Red" style="background:#d23b2e"></span>
+    </span></div>
+    <div class="stSec">Extensions &nbsp;(m7, sus, 2)</div>
+    <div class="stRow"><label>Size</label><input type="range" id="stSupSize" min="0.5" max="1.0" step="0.02"></div>
+    <div class="stRow"><label>Weight</label><span class="seg" id="stSupWeight"><button data-w="500">Normal</button><button data-w="700">Bold</button><button data-w="800">Heavy</button></span></div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn" id="stReset">Reset to default</button><span style="flex:1"></span>
+    <button class="btn on" id="stDone">Done</button>
+  </div>
+</dialog>
 
 <div id="printRoot"></div>
 
@@ -338,6 +382,24 @@ function mergeSeed(){
   SEED_SETS.forEach(ss=>{if(!sets.find(x=>x.id===ss.id))sets.push(ss);});
 }
 function persist(){store.save();}
+/* ---- chord display style (device-local preference) ---- */
+const STYLE_DEFAULTS={scale:1,supSize:0.70,supWeight:700,bassSize:0.68,bassWeight:700,bassOpacity:0.72,bassColor:'auto'};
+let styleS=Object.assign({},STYLE_DEFAULTS);
+function loadStyle(){try{const s=localStorage.getItem('stagecharts_style');if(s)styleS=Object.assign({},STYLE_DEFAULTS,JSON.parse(s));}catch(e){}}
+function saveStyle(){try{localStorage.setItem('stagecharts_style',JSON.stringify(styleS));}catch(e){}}
+function applyStyle(){
+  const r=document.documentElement.style;
+  r.setProperty('--chord-scale',styleS.scale);
+  r.setProperty('--sup-size',styleS.supSize);
+  r.setProperty('--sup-weight',styleS.supWeight);
+  r.setProperty('--bass-size',styleS.bassSize);
+  r.setProperty('--bass-weight',styleS.bassWeight);
+  r.setProperty('--bass-opacity',styleS.bassOpacity);
+  ['bass-teal','bass-amber','bass-red'].forEach(c=>document.body.classList.remove(c));
+  if(styleS.bassColor==='teal')document.body.classList.add('bass-teal');
+  else if(styleS.bassColor==='amber')document.body.classList.add('bass-amber');
+  else if(styleS.bassColor==='red')document.body.classList.add('bass-red');
+}
 function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
 function byId(id){return library.find(s=>s.id===id);}
 function curSong(){return byId(S.selId)||library[0];}
@@ -651,6 +713,7 @@ function wire(){
   document.getElementById('edDel').onclick=deleteEditor;
   document.getElementById('pickCancel').onclick=()=>document.getElementById('picker').close();
   document.getElementById('pickApply').onclick=applyPicker;
+  wireStyle();
 }
 
 /* ===================== seed songs ===================== */
@@ -828,8 +891,31 @@ You deserve the [Bb]glory (oh)`)}
 const SEED_SETS=[{id:'set-2026-06-14',name:'Sunday — 14 Jun 2026',songIds:['the-same-jesus','goodness-of-god','lord-i-need-you','worthy-of-it-all']}];
 
 /* ===================== boot ===================== */
+function setSeg(id,val){document.querySelectorAll('#'+id+' button').forEach(b=>b.classList.toggle('on',+b.dataset.w===val));}
+function setSwatch(c){document.querySelectorAll('#stBassColor .sw').forEach(s=>s.classList.toggle('on',s.dataset.c===c));}
+function openStyler(){
+  document.getElementById('stPrev').innerHTML=['G','Em7','D/F#','Cmaj7','G/B'].map(s=>'<span class="ch">'+fmtSymbol(s)+'</span>').join('');
+  document.getElementById('stScale').value=styleS.scale;
+  document.getElementById('stBassSize').value=styleS.bassSize;
+  document.getElementById('stBassOpacity').value=styleS.bassOpacity;
+  document.getElementById('stSupSize').value=styleS.supSize;
+  setSeg('stBassWeight',styleS.bassWeight);setSeg('stSupWeight',styleS.supWeight);setSwatch(styleS.bassColor);
+  document.getElementById('styler').showModal();
+}
+function wireStyle(){
+  document.getElementById('styleBtn').onclick=openStyler;
+  const b2=document.getElementById('styleBtn2');if(b2)b2.onclick=()=>{openStyler();if(window.innerWidth<=720)document.getElementById('aside').classList.add('hide');};
+  document.getElementById('stDone').onclick=()=>document.getElementById('styler').close();
+  document.getElementById('stReset').onclick=()=>{styleS=Object.assign({},STYLE_DEFAULTS);applyStyle();saveStyle();openStyler();};
+  const bind=(id,key)=>{const el=document.getElementById(id);el.oninput=()=>{styleS[key]=parseFloat(el.value);applyStyle();saveStyle();};};
+  bind('stScale','scale');bind('stBassSize','bassSize');bind('stBassOpacity','bassOpacity');bind('stSupSize','supSize');
+  document.querySelectorAll('#stBassWeight button').forEach(b=>b.onclick=()=>{styleS.bassWeight=+b.dataset.w;setSeg('stBassWeight',styleS.bassWeight);applyStyle();saveStyle();});
+  document.querySelectorAll('#stSupWeight button').forEach(b=>b.onclick=()=>{styleS.supWeight=+b.dataset.w;setSeg('stSupWeight',styleS.supWeight);applyStyle();saveStyle();});
+  document.querySelectorAll('#stBassColor .sw').forEach(s=>s.onclick=()=>{styleS.bassColor=s.dataset.c;setSwatch(s.dataset.c);applyStyle();saveStyle();});
+}
 function boot(){
   wire();
+  loadStyle();applyStyle();
   const saved=store.load();
   if(saved&&saved.library&&saved.library.length){
     library=saved.library;sets=saved.sets||[];overrides=saved.overrides||{};seedVersion=saved.seedVersion||0;
