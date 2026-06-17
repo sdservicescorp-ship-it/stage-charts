@@ -17,11 +17,13 @@
     --line:#e4e2db; --chord:#1f6f78; --accent:#c8643c; --accent2:#1f6f78;
     --shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px rgba(0,0,0,.05);
     --radius:12px; --songsize:18px; --cols:2;
+    --circle:#2b2b2b; --circle-ink:#ffffff;
   }
   body.dark{
     --bg:#11141a; --panel:#171b22; --ink:#eef1f4; --muted:#9aa4b1;
     --line:#2a313c; --chord:#5fd3c6; --accent:#f0915f; --accent2:#5fd3c6;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 30px rgba(0,0,0,.4);
+    --circle:#e8eaed; --circle-ink:#11141a;
   }
   *{box-sizing:border-box}
   html,body{margin:0}
@@ -91,8 +93,43 @@
   .keysub b{color:var(--accent2)}
   .song{column-count:var(--cols);column-gap:30px;column-fill:balance;font-size:var(--songsize)}
   body.pageMode main>.page .song{flex:1;min-height:0}
-  .section{break-inside:avoid;margin:0 0 11px}
-  .sec-label{font-family:'Inter',sans-serif;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+  .section{break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid;border:1px solid var(--line);border-radius:13px;padding:12px 15px 13px;margin:0 0 11px}
+  .song-meta{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);margin-top:2px}
+  /* ---- MultiTracks-style section header ---- */
+  .sec-head{display:flex;align-items:center;gap:8px;margin:-1px 0 7px}
+  .sec-circ{flex-shrink:0;width:23px;height:23px;border-radius:50%;border:2px solid var(--c);color:var(--c);background:transparent;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:800;font-size:9.5px;line-height:1;letter-spacing:-.02em}
+  .sec-name{font-family:'Inter',sans-serif;font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
+  .sec-rule{flex:1;height:1px;background:var(--line);min-width:10px}
+  .sec-note{font-family:'Inter',sans-serif;font-size:11.5px;font-style:italic;color:var(--muted);text-align:right;max-width:58%;line-height:1.3}
+  /* ---- song map: colour-coded circles with repeat superscript ---- */
+  .songmap{display:flex;align-items:flex-start;gap:8px;margin:2px 0 14px;padding-bottom:13px;border-bottom:1px solid var(--line)}
+  .sm-flow{display:flex;flex-wrap:wrap;gap:14px 16px;flex:1;padding-top:6px}
+  .smchip{position:relative;border:none;background:transparent;padding:0;cursor:pointer;line-height:1}
+  .smchip .smcirc{width:34px;height:34px;border-radius:50%;border:2.5px solid var(--c);color:var(--c);background:transparent;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:800;font-size:13px;letter-spacing:-.02em;transition:transform .1s}
+  .smchip .smsup{position:absolute;top:-4px;right:-9px;font-family:'Inter',sans-serif;font-size:13px;font-weight:800;color:var(--c)}
+  .smchip:active .smcirc{transform:scale(.9);background:var(--c);color:#fff}
+  .sm-tools{display:flex;gap:5px;flex-shrink:0}
+  .sm-btn{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:4px 8px;cursor:pointer}
+  .sm-btn:hover{color:var(--accent2);border-color:var(--accent2)}
+  .section.flash{animation:flash .9s ease}
+  @keyframes flash{0%,100%{background:transparent}25%{background:color-mix(in srgb,var(--accent2) 14%,transparent)}}
+  .arrSub{font-family:'Inter',sans-serif;font-size:12.5px;color:var(--muted);margin-bottom:12px}
+  .arrSub b{color:var(--accent2)}
+  .arrList{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+  .arrRow{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:7px 9px}
+  .arrRow .ord{display:flex;flex-direction:column;gap:2px}
+  .arrRow .ord button{font-size:10px;line-height:1;border:none;background:transparent;color:var(--muted);cursor:pointer;padding:1px 3px}
+  .arrRow .ord button:hover{color:var(--accent2)}
+  .arrRow .nm{flex:1;display:flex;align-items:center;gap:8px;min-width:0;font-family:'Inter',sans-serif;font-weight:700;font-size:14px}
+  .arrRow .nm i{width:20px;height:20px;flex-shrink:0;border-radius:50%;border:2px solid currentColor;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800}
+  .arrRow .nm .lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .arrRow .nm .nt{font-weight:400;font-style:italic;font-size:11.5px;color:var(--muted)}
+  .arrRow .act{display:flex;gap:2px;flex-shrink:0}
+  .arrRow .act button{border:none;background:transparent;font-size:15px;cursor:pointer;padding:3px 6px;color:var(--muted)}
+  .arrRow .act .dup:hover{color:var(--accent2)}
+  .arrRow .act .del:hover{color:#c0392b}
+  .arrAdd{display:flex;gap:8px;margin-bottom:6px}
+  .arrAdd select{flex:1;font-family:'Inter',sans-serif;font-size:13px;padding:8px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink)}
   .ln{line-height:1.05;margin:1px 0}
   .u{display:inline-block;vertical-align:bottom}
   .ch{display:block;font-family:'Inter','Segoe UI',sans-serif;font-weight:700;font-size:calc(.76em * var(--chord-scale,1));color:var(--chord);height:1.34em;white-space:pre;letter-spacing:-.01em}
@@ -113,7 +150,7 @@
   .ly{display:block;white-space:pre}
   body.lyricsOnly .ch{display:none}
   body.lyricsOnly .ln{line-height:1.35;margin:2px 0}
-  body.lyricsOnly .sec-label{margin-bottom:1px}
+  body.lyricsOnly .sec-head{margin-bottom:2px}
   .credit{font-family:'Inter',sans-serif;font-size:9px;color:var(--muted);margin-top:10px;padding-top:6px;border-top:1px solid var(--line)}
 
   .empty{font-family:'Inter',sans-serif;color:var(--muted);text-align:center;margin-top:60px;max-width:420px}
@@ -190,6 +227,51 @@
   .pd-beat.tick{background:var(--accent2);border-color:var(--accent2)}
   .pd-beat.accent{background:var(--accent);border-color:var(--accent)}
   @media(max-width:560px){.pd-lab{display:none}.pd-read{min-width:54px}}
+  /* ===================== three-mode shell ===================== */
+  #modebar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top) + 9px) 14px 9px;background:color-mix(in srgb,var(--panel) 92%,transparent);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
+  .mb-brand{font-family:'Inter',sans-serif;font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px;color:var(--ink);white-space:nowrap}
+  .mb-brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent)}
+  .mb-tabs{margin-left:auto;display:flex;gap:3px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px}
+  .mb-tab{appearance:none;border:none;background:none;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:var(--muted);padding:7px 13px;border-radius:9px;cursor:pointer;white-space:nowrap}
+  .mb-tab.on{background:var(--accent2);color:#fff}
+  body.dark .mb-tab.on{color:#0c1015}
+  body.perform #modebar{display:none}
+  /* mode visibility */
+  body:not(.view-library) #libView{display:none}
+  body:not(.view-setlist) #setView{display:none}
+  body:not(.view-reader)>header{display:none}
+  body:not(.view-reader) .wrap{display:none}
+  body.view-reader #aside{display:none}
+  body.view-reader>header.ui{top:var(--mbh,50px)}
+  .modeview{max-width:880px;margin:0 auto;padding:18px 16px calc(env(safe-area-inset-bottom) + 28px)}
+  .mv-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .mv-head h1{font-family:'Inter',sans-serif;font-size:23px;font-weight:800;margin:0;color:var(--ink)}
+  .mv-search{flex:1;min-width:160px;max-width:360px}
+  .search{width:100%;appearance:none;border:1px solid var(--line);background:var(--panel);border-radius:11px;padding:11px 13px;font-family:'Inter',sans-serif;font-size:15px;color:var(--ink)}
+  .scard-list{display:flex;flex-direction:column;gap:8px}
+  .scard,.setcard{display:flex;align-items:center;gap:12px;width:100%;text-align:left;appearance:none;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 15px;cursor:pointer;color:var(--ink);font-family:'Inter',sans-serif}
+  .scard:active,.setcard:active{transform:translateY(1px)}
+  .scard.sel,.setcard.sel{border-color:var(--accent2);box-shadow:0 0 0 1px var(--accent2)}
+  .sc-num{font-weight:800;color:var(--muted);min-width:18px;text-align:center;font-size:14px}
+  .sc-main{flex:1;min-width:0}
+  .sc-t{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sc-a{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+  .sc-badges{display:flex;gap:6px;align-items:center;flex:none}
+  .sc-key{font-weight:800;font-size:13px;color:#fff;background:var(--accent2);border-radius:999px;padding:3px 11px}
+  body.dark .sc-key{color:#0c1015}
+  .sc-bpm{font-size:11px;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px 9px;white-space:nowrap}
+  .sc-leader{appearance:none;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:7px 8px;font-family:'Inter',sans-serif;font-weight:700;color:var(--ink);flex:none}
+  .sc-re{display:flex;gap:2px;flex:none}
+  .sc-re .ic{appearance:none;border:1px solid var(--line);background:var(--bg);border-radius:7px;width:30px;height:30px;cursor:pointer;color:var(--ink);font-size:12px;line-height:1}
+  .sc-re .ic.x{color:var(--accent)}
+  .mv-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:18px}
+  .mv-actions .golive{margin-left:auto;background:var(--accent2);border-color:var(--accent2);color:#fff;font-weight:800;padding:12px 22px;font-size:15px;border-radius:11px}
+  body.dark .mv-actions .golive{color:#0c1015}
+  .mv-empty{padding:34px;text-align:center;color:var(--muted)}
+  .mv-setname{font-family:'Inter',sans-serif;font-weight:700;color:var(--muted);margin-bottom:10px;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+  .mv-setpick{display:flex;gap:6px;align-items:center}
+  .mv-setpick select{appearance:none;border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:8px 10px;font-family:'Inter',sans-serif;color:var(--ink);max-width:200px}
+  .mv-setpick button{appearance:none;border:1px solid var(--line);background:var(--bg);border-radius:9px;width:36px;height:36px;cursor:pointer;color:var(--ink)}
 
   /* print */
   #printRoot{display:none}
@@ -202,11 +284,19 @@
     #printRoot .page+.page{break-before:page}
     #printRoot.multi .song{font-size:13px}
     .song{column-count:var(--cols)}
-    .ch{color:#155} .sec-label{color:#b04a22} .song-head{border-color:#000}
+    .ch{color:#155} .sec-name{color:#111} .song-head{border-color:#000}
   }
 </style>
 </head>
 <body>
+<div id="modebar">
+  <div class="mb-brand"><span class="dot"></span> Stage Charts</div>
+  <div class="mb-tabs">
+    <button class="mb-tab" id="tabLib">Library</button>
+    <button class="mb-tab" id="tabSet">Setlist</button>
+    <button class="mb-tab" id="tabPerf">Performance</button>
+  </div>
+</div>
 <header class="ui">
   <div class="bar">
     <div class="brand"><span class="dot"></span> Stage Charts</div>
@@ -238,6 +328,9 @@
   </div>
   <div id="setbar"></div>
 </header>
+
+<div id="libView" class="modeview"></div>
+<div id="setView" class="modeview"></div>
 
 <div class="wrap">
   <aside id="aside" class="ui">
@@ -292,6 +385,22 @@
     </div>
   </div>
 </div>
+
+<dialog id="arranger" class="ui">
+  <div class="modal-h">Arrangement</div>
+  <div class="modal-b">
+    <div class="arrSub" id="arrSub"></div>
+    <div class="arrList" id="arrList"></div>
+    <div class="arrAdd">
+      <select id="arrAddSel"></select>
+      <button class="btn" id="arrAddBtn">＋ Add</button>
+    </div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn" id="arrReset">↺ Original flow</button><span style="flex:1"></span>
+    <button class="btn on" id="arrDone">Done</button>
+  </div>
+</dialog>
 
 <dialog id="styler" class="ui">
   <div class="modal-h">Chord display</div>
@@ -410,12 +519,12 @@ function parseLine(line){
 }
 
 /* ===================== state ===================== */
-const S={mode:'names',targetIdx:null,leaderIdx:null,capo:0,cols:2,size:18,page:false,dark:false,selId:null,activeSet:null,setIdx:0,perform:false,search:''};
-let library=[],sets=[],overrides={},seedVersion=0;
-const SEED_VERSION=4;   /* bump whenever a SEED song is corrected/added so installed apps refresh it */
+const S={mode:'names',targetIdx:null,leaderIdx:null,capo:0,cols:2,size:18,page:false,dark:false,selId:null,activeSet:null,setIdx:0,perform:false,search:'',full:false};
+let library=[],sets=[],overrides={},arrangements={},seedVersion=0;
+const SEED_VERSION=8;   /* bump whenever a SEED song is corrected/added so installed apps refresh it */
 const store={
-  save(){try{localStorage.setItem('stagecharts_v1',JSON.stringify({library,sets,overrides,seedVersion}));}catch(e){}},
-  load(){try{const s=localStorage.getItem('stagecharts_v1');if(s){const d=JSON.parse(s);return Array.isArray(d)?{library:d,sets:[],overrides:{},seedVersion:0}:{library:d.library||[],sets:d.sets||[],overrides:d.overrides||{},seedVersion:d.seedVersion||0};}}catch(e){}return null;}
+  save(){try{localStorage.setItem('stagecharts_v1',JSON.stringify({library,sets,overrides,arrangements,seedVersion}));}catch(e){}},
+  load(){try{const s=localStorage.getItem('stagecharts_v1');if(s){const d=JSON.parse(s);return Array.isArray(d)?{library:d,sets:[],overrides:{},arrangements:{},seedVersion:0}:{library:d.library||[],sets:d.sets||[],overrides:d.overrides||{},arrangements:d.arrangements||{},seedVersion:d.seedVersion||0};}}catch(e){}return null;}
 };
 function mergeSeed(){
   SEED.forEach(seed=>{const i=library.findIndex(s=>s.id===seed.id);if(i>=0)library[i]=seed;else library.push(seed);});
@@ -443,6 +552,47 @@ function applyStyle(){
 function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
 function byId(id){return library.find(s=>s.id===id);}
 function curSong(){return byId(S.selId)||library[0];}
+/* ===================== arrangement engine ===================== */
+function slug(s){return String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');}
+function splitLabel(label){const s=String(label||'').trim();const m=s.match(/^(.*?)\s*\(([^)]*)\)\s*$/);return m?{name:m[1].trim(),paren:m[2].trim()}:{name:s,paren:''};}
+const SECTYPES=[
+  [/pre[\s-]?chorus/,'PC','prechorus','#b07a30'],
+  [/turn\s?around/,'Ta','turn','#6f7d3a'],
+  [/break\s?down/,'Bd','breakdown','#8a6a4a'],
+  [/instrumental/,'In','inst','#5a6570'],
+  [/interlude/,'It','inter','#8a4a4a'],
+  [/chorus|refrain/,'C','chorus','#a0562f'],
+  [/verse/,'V','verse','#4f5b9c'],
+  [/bridge/,'B','bridge','#7c3f5c'],
+  [/\btag\b/,'Tg','tag','#6f7d3a'],
+  [/\bvamp\b/,'Vp','vamp','#6a3f6f'],
+  [/intro/,'I','intro','#3f7d7d'],
+  [/outro/,'O','outro','#4a4a55'],
+  [/ending|coda/,'E','ending','#3f7d7d'],
+  [/\bhook\b/,'H','hook','#a0562f']
+];
+function secMeta(label){
+  const {name}=splitLabel(label);const L=name.toLowerCase();
+  let code='?',type='other',color='#8B8378';
+  for(const[re,c,t,col]of SECTYPES){if(re.test(L)){code=c;type=t;color=col;break;}}
+  if(type==='other'){const w=name.split(/\s+/);code=(w[0]||'?').slice(0,2);}
+  const m=name.match(/(\d+\s*[a-z]?)\s*$/i);const suf=m?m[1].replace(/\s+/g,'').toUpperCase():'';
+  return {code:code+suf,type,color,name};
+}
+function defaultArr(song){
+  if(song.arrangement&&song.arrangement.length)return song.arrangement.map(e=>({ref:e.ref,note:e.note||''}));
+  return (song.sections||[]).map(s=>({ref:s.label,note:''}));
+}
+function songArr(id){const st=activeSetObj();if(st&&st.arrangements&&st.arrangements[id])return st.arrangements[id];if(arrangements[id])return arrangements[id];return null;}
+function resolveArr(song){const a=songArr(song.id);if(a&&a.length)return a.map(e=>({ref:e.ref,note:e.note||''}));return defaultArr(song);}
+function isDefaultArr(song,arr){const d=defaultArr(song);if(arr.length!==d.length)return false;return arr.every((e,i)=>e.ref===d[i].ref&&(e.note||'')===(d[i].note||''));}
+function writeArr(id,arr){
+  const song=byId(id);const isDef=isDefaultArr(song,arr);const st=activeSetObj();
+  if(st){st.arrangements=st.arrangements||{};if(isDef)delete st.arrangements[id];else st.arrangements[id]=arr;}
+  else{if(isDef)delete arrangements[id];else arrangements[id]=arr;}
+  persist();
+}
+function mapGroups(entries){const g=[];entries.forEach((e,pos)=>{const last=g[g.length-1];if(last&&last.ref===e.ref)last.count++;else g.push({ref:e.ref,count:1,pos});});return g;}
 function activeSetObj(){return sets.find(s=>s.id===S.activeSet);}
 function setSongs(){const st=activeSetObj();return st?st.songIds.map(byId).filter(Boolean):[];}
 
@@ -477,36 +627,68 @@ function chordHTML(cluster,fn){
   }).join(' ');
 }
 function shapeKeyName(tIdx,capo,flat){return idxNote(tIdx-capo,flat);}
+function sectionHTML(sec,base,id,note){
+  const m=secMeta(sec.label);const sl=splitLabel(sec.label);const nt=note||sl.paren;
+  let h='<div class="section" id="'+id+'"><div class="sec-head"><span class="sec-circ" style="--c:'+m.color+'">'+esc(m.code)+'</span>'
+    +'<span class="sec-name">'+esc(sl.name)+'</span><span class="sec-rule"></span>'
+    +(nt?'<span class="sec-note">'+esc(nt)+'</span>':'')+'</div>';
+  (sec.lines||[]).forEach(line=>{
+    if(line===''){h+='<div class="ln">&nbsp;</div>';return;}
+    let ln='<div class="ln">';
+    parseLine(line).forEach(u=>{
+      const lyric=(u.lyric===''||u.lyric==null)?'\u00A0':u.lyric;
+      if(u.chord==null)ln+='<span class="u"><span class="ch"></span><span class="ly">'+esc(lyric)+'</span></span>';
+      else ln+='<span class="u"><span class="ch">'+chordHTML(u.chord,base)+' </span><span class="ly">'+esc(lyric)+'</span></span>';
+    });
+    h+=ln+'</div>';
+  });
+  return h+'</div>';
+}
+function mapStripHTML(entries,full){
+  let h='<div class="songmap"><div class="sm-flow" id="smflow">';
+  mapGroups(entries).forEach(g=>{
+    const m=secMeta(g.ref);const tgt=full?('pos'+g.pos):('ref'+slug(g.ref));
+    h+='<button class="smchip" data-tgt="'+tgt+'" title="'+esc(g.ref)+(g.count>1?' ×'+g.count:'')+'"><span class="smcirc" style="--c:'+m.color+'">'+esc(m.code)+'</span>'+(g.count>1?'<span class="smsup">'+g.count+'</span>':'')+'</button>';
+  });
+  h+='</div><div class="sm-tools"><button class="sm-btn" id="smFull">'+(full?'Full':'Condensed')+'</button><button class="sm-btn" id="smEdit" title="Edit arrangement">✎</button></div></div>';
+  return h;
+}
 function renderPageHTML(song,leaderIdx,playIdx,capo,mode){
   const base=transformFor(song,playIdx,capo,mode);
+  const entries=resolveArr(song);
   let body='';
-  song.sections.forEach(sec=>{
-    body+='<div class="section">';
-    if(sec.label)body+='<div class="sec-label">'+esc(sec.label)+'</div>';
-    sec.lines.forEach(line=>{
-      if(line===''){body+='<div class="ln">&nbsp;</div>';return;}
-      let ln='<div class="ln">';
-      parseLine(line).forEach(u=>{
-        const lyric=(u.lyric===''||u.lyric==null)?'\u00A0':u.lyric;
-        if(u.chord==null)ln+='<span class="u"><span class="ch"></span><span class="ly">'+esc(lyric)+'</span></span>';
-        else ln+='<span class="u"><span class="ch">'+chordHTML(u.chord,base)+' </span><span class="ly">'+esc(lyric)+'</span></span>';
-      });
-      body+=ln+'</div>';
+  if(S.full){
+    entries.forEach((e,pos)=>{const sec=(song.sections||[]).find(s=>s.label===e.ref);if(sec)body+=sectionHTML(sec,base,'pos'+pos,e.note);});
+  }else{
+    const seen=new Set();
+    entries.forEach(e=>{
+      if(seen.has(e.ref))return;seen.add(e.ref);
+      const sec=(song.sections||[]).find(s=>s.label===e.ref);if(sec)body+=sectionHTML(sec,base,'ref'+slug(e.ref),e.note);
     });
-    body+='</div>';
-  });
-  // header sub-line — what YOU are reading, separate from the leader's anchored key
+  }
   const sub=[];
   if(mode==='numbers')sub.push('Nashville numbers');
   if(playIdx!==leaderIdx)sub.push('you\u2019re reading in <b>'+esc(KEYS[playIdx].n)+'</b>');
   if(capo>0&&mode==='names')sub.push('capo '+capo+' · play <b>'+esc(shapeKeyName(playIdx,capo,KEYS[playIdx].flat))+'</b> shapes');
   const subHtml=sub.length?'<div class="keysub">'+sub.join('<br>')+'</div>':'';
+  const metaBits=[];if(song.bpm)metaBits.push(esc(song.bpm)+' bpm');if(song.time)metaBits.push(esc(song.time));
+  const metaHtml=metaBits.length?'<div class="song-meta">'+metaBits.join(' · ')+'</div>':'';
   return '<div class="page"><div class="song-head"><div><div class="song-title">'+esc(song.title)+'</div>'
-    +(song.artist?'<div class="song-sub">'+esc(song.artist)+'</div>':'')+'</div>'
+    +(song.artist?'<div class="song-sub">'+esc(song.artist)+'</div>':'')+metaHtml+'</div>'
     +'<div class="song-headR">'+subHtml
     +'<div class="keybadge"><div class="kb-label">LEADER KEY</div><div class="kb-val">'+esc(KEYS[leaderIdx].n)+'</div></div></div></div>'
+    +mapStripHTML(entries,S.full)
     +'<div class="song">'+body+'</div>'
     +(song.credit?'<div class="credit">'+esc(song.credit)+'</div>':'')+'</div>';
+}
+function wireMapStrip(scope){
+  const root=scope||document;
+  root.querySelectorAll('.smchip').forEach(c=>c.onclick=()=>{
+    const el=root.querySelector('#'+c.dataset.tgt)||document.getElementById(c.dataset.tgt);
+    if(el){el.scrollIntoView({behavior:'smooth',block:'start'});el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),900);}
+  });
+  const f=root.querySelector('#smFull');if(f)f.onclick=()=>{S.full=!S.full;try{localStorage.setItem('stagecharts_full',S.full?'1':'0');}catch(e){}S.perform?renderPerform():render();};
+  const e=root.querySelector('#smEdit');if(e)e.onclick=()=>openArrange();
 }
 function render(){
   const stage=document.getElementById('stage');
@@ -516,8 +698,10 @@ function render(){
   document.getElementById('keySel').value=S.targetIdx;
   document.getElementById('capoSel').value=S.capo;
   stage.innerHTML=renderPageHTML(song,S.leaderIdx,S.targetIdx,S.capo,S.mode);
+  wireMapStrip(stage);
   if(S.page)fitPage();
   renderSetSelect();renderSetbar();renderList();
+  refreshShell();
 }
 function fitPage(){
   const page=document.querySelector('main>.page'),body=page&&page.querySelector('.song');
@@ -585,6 +769,7 @@ function renderPerform(){
   const song=curSong();if(!song)return;
   if(S.targetIdx===null||S.leaderIdx===null)loadSongState(song.id);
   document.getElementById('performPage').innerHTML=renderPageHTML(song,S.leaderIdx,S.targetIdx,S.capo,S.mode);
+  wireMapStrip(document.getElementById('performPage'));
   const list=navList();const i=list.findIndex(s=>s.id===S.selId);
   document.getElementById('ppos').textContent=(i+1)+' / '+list.length;
   document.getElementById('pKey').textContent=(S.mode==='numbers')?'#':KEYS[S.targetIdx].n;
@@ -643,6 +828,79 @@ function wirePerformDock(){
   document.getElementById('aTog').onclick=toggleScroll;
   document.getElementById('aUp').onclick=()=>{setSpeed(S.selId,getSpeed(S.selId)+1);syncDock();};
   document.getElementById('aDown').onclick=()=>{setSpeed(S.selId,getSpeed(S.selId)-1);syncDock();};
+}
+
+/* ===================== three-mode shell (Library / Setlist / Performance) ===================== */
+function switchView(v){
+  if(v==='perform'){
+    if(!library.length)return;
+    const list=navList();
+    if((!S.selId||!list.find(s=>s.id===S.selId))&&list[0])loadSongState(list[0].id);
+    enterPerform();return;
+  }
+  S.view=v;
+  document.body.classList.remove('view-library','view-setlist','view-reader');
+  document.body.classList.add('view-'+v);
+  const tl=document.getElementById('tabLib'),ts=document.getElementById('tabSet');
+  if(tl)tl.classList.toggle('on',v==='library');
+  if(ts)ts.classList.toggle('on',v==='setlist');
+  if(v==='library')renderLibraryView();
+  else if(v==='setlist')renderSetlistView();
+  else if(v==='reader')render();
+}
+function songCardHTML(s){
+  return '<button class="scard'+(s.id===S.selId?' sel':'')+'" data-open="'+s.id+'" data-search="'+esc((s.title+' '+(s.artist||'')).toLowerCase())+'">'
+    +'<div class="sc-main"><div class="sc-t">'+esc(s.title)+'</div><div class="sc-a">'+esc(s.artist||'')+'</div></div>'
+    +'<div class="sc-badges"><span class="sc-key">'+esc(s.key)+'</span><span class="sc-bpm">'+getTempo(s.id)+' bpm</span></div></button>';
+}
+function renderLibraryView(){
+  const el=document.getElementById('libView');if(!el)return;
+  const songs=[...library].sort((a,b)=>a.title.localeCompare(b.title));
+  el.innerHTML='<div class="mv-head"><h1>Library</h1><div class="mv-search"><input id="libSearch" class="search" placeholder="Search songs…" value="'+esc(S.search||'')+'"></div></div>'
+    +'<div class="scard-list" id="libList">'+(songs.length?songs.map(songCardHTML).join(''):'<div class="mv-empty">No songs yet. Tap “Add song”, or Restore a backup.</div>')+'</div>'
+    +'<div class="mv-actions"><button class="btn" id="libAdd">＋ Add song</button><button class="btn" id="libBackup">⬇ Backup</button><button class="btn" id="libRestore">⬆ Restore</button></div>';
+  el.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{openSong(b.dataset.open);switchView('reader');});
+  const inp=document.getElementById('libSearch');
+  if(inp)inp.oninput=()=>{S.search=inp.value;const q=inp.value.toLowerCase();el.querySelectorAll('#libList .scard').forEach(c=>{c.style.display=(!q||c.dataset.search.indexOf(q)>=0)?'':'none';});};
+  document.getElementById('libAdd').onclick=()=>openEditor(null);
+  document.getElementById('libBackup').onclick=exportLib;
+  document.getElementById('libRestore').onclick=()=>document.getElementById('impFile').click();
+}
+function renderSetlistView(){
+  const el=document.getElementById('setView');if(!el)return;
+  const st=activeSetObj();const songs=st?setSongs():[];
+  const setOpts=sets.map(x=>'<option value="'+x.id+'"'+(x.id===S.activeSet?' selected':'')+'>'+esc(x.name)+'</option>').join('');
+  let h='<div class="mv-head"><h1>Setlist</h1><div class="mv-setpick"><select id="setViewSel">'+setOpts+'</select><button id="setNew" title="New set">＋</button><button id="setDel" title="Delete set">🗑</button></div></div>';
+  if(!st){h+='<div class="mv-empty">No set selected. Tap ＋ to plan a service.</div>';}
+  else{
+    h+='<div class="mv-setname">'+esc(st.name)+'</div>';
+    if(!songs.length)h+='<div class="mv-empty">This set is empty. Add songs from your library below.</div>';
+    else h+='<div class="scard-list">'+songs.map((s,i)=>{const ki=resolveState(s.id).leader;
+      return '<div class="setcard'+(s.id===S.selId?' sel':'')+'" data-open="'+s.id+'"><span class="sc-num">'+(i+1)+'</span>'
+        +'<div class="sc-main"><div class="sc-t">'+esc(s.title)+'</div><div class="sc-a">'+esc(s.artist||'')+'</div></div>'
+        +'<select class="sc-leader" data-key="'+s.id+'" title="Leader key">'+keyOptions(ki)+'</select>'
+        +'<span class="sc-re"><button class="ic" data-up="'+s.id+'">▲</button><button class="ic" data-down="'+s.id+'">▼</button><button class="ic x" data-rm="'+s.id+'">✕</button></span></div>';}).join('')+'</div>';
+    h+='<div class="mv-actions"><button class="btn" id="setAdd">＋ Add songs</button><button class="btn golive" id="goLive">▶ Go Live</button></div>';
+  }
+  el.innerHTML=h;
+  el.querySelectorAll('.setcard').forEach(n=>n.onclick=e=>{if(e.target.closest('.ic')||e.target.closest('.sc-leader'))return;openSong(n.dataset.open);switchView('reader');});
+  el.querySelectorAll('.sc-leader').forEach(sel=>sel.onchange=()=>setLeaderKey(sel.dataset.key,+sel.value));
+  el.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{moveInSet(b.dataset.up,-1);renderSetlistView();});
+  el.querySelectorAll('[data-down]').forEach(b=>b.onclick=()=>{moveInSet(b.dataset.down,1);renderSetlistView();});
+  el.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{removeFromSet(b.dataset.rm);renderSetlistView();});
+  const ss=document.getElementById('setViewSel');if(ss)ss.onchange=e=>{S.activeSet=e.target.value||null;if(S.activeSet){const so=setSongs();if(so[0])loadSongState(so[0].id);}render();renderSetlistView();};
+  const sn=document.getElementById('setNew');if(sn)sn.onclick=newSet;
+  const sd=document.getElementById('setDel');if(sd)sd.onclick=delSet;
+  const sa=document.getElementById('setAdd');if(sa)sa.onclick=openPicker;
+  const gl=document.getElementById('goLive');if(gl)gl.onclick=()=>{if(!songs.length)return;if(!S.selId||!songs.find(s=>s.id===S.selId))loadSongState(songs[0].id);enterPerform();};
+}
+function refreshShell(){if(S.view==='library')renderLibraryView();else if(S.view==='setlist')renderSetlistView();}
+function wireShell(){
+  document.getElementById('tabLib').onclick=()=>switchView('library');
+  document.getElementById('tabSet').onclick=()=>switchView('setlist');
+  document.getElementById('tabPerf').onclick=()=>switchView('perform');
+  const setMbh=()=>{const mb=document.getElementById('modebar');if(mb)document.documentElement.style.setProperty('--mbh',mb.offsetHeight+'px');};
+  setMbh();window.addEventListener('resize',setMbh);
 }
 function renderList(){
   const el=document.getElementById('list');
@@ -735,8 +993,8 @@ function saveEditor(){
   S.selId=obj.id;S.targetIdx=null;S.capo=0;persist();document.getElementById('editor').close();render();
 }
 function deleteEditor(){if(!editingId)return;if(!confirm('Delete this song?'))return;library=library.filter(s=>s.id!==editingId);sets.forEach(st=>st.songIds=st.songIds.filter(x=>x!==editingId));delete overrides[editingId];S.selId=library[0]?.id||null;S.targetIdx=null;persist();document.getElementById('editor').close();render();}
-function exportLib(){const blob=new Blob([JSON.stringify({library,sets,overrides,seedVersion},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='stage-charts-backup.json';a.click();}
-function importLib(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d)){library=d;sets=[];overrides={};}else{library=d.library||[];sets=d.sets||[];overrides=d.overrides||{};seedVersion=d.seedVersion||seedVersion;}S.selId=library[0]?.id;S.activeSet=null;S.targetIdx=null;persist();render();}catch(err){alert('That file could not be read.');}};r.readAsText(f);}
+function exportLib(){const blob=new Blob([JSON.stringify({library,sets,overrides,arrangements,seedVersion},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='stage-charts-backup.json';a.click();}
+function importLib(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d)){library=d;sets=[];overrides={};arrangements={};}else{library=d.library||[];sets=d.sets||[];overrides=d.overrides||{};arrangements=d.arrangements||{};seedVersion=d.seedVersion||seedVersion;}S.selId=library[0]?.id;S.activeSet=null;S.targetIdx=null;S.leaderIdx=null;persist();render();}catch(err){alert('That file could not be read.');}};r.readAsText(f);}
 
 /* ===================== wiring ===================== */
 function wire(){
@@ -800,181 +1058,48 @@ function wire(){
   document.getElementById('pickCancel').onclick=()=>document.getElementById('picker').close();
   document.getElementById('pickApply').onclick=applyPicker;
   wireStyle();
+  wireArrange();
+  wireShell();
 }
 
 /* ===================== seed songs ===================== */
-const SEED=[
-{id:'firm-foundation',title:'Firm Foundation (He Won\u2019t)',artist:'Cody Carnes, Austin Davis, Chandler Moore',key:'G',credit:'CCLI #7188203 · © 2021 Capitol CMG Paragon / TBCO / Writer\u2019s Roof / A.L.K.D. · Used under CCLI #11287538.',sections:parseSong(
-`# Intro
-| [G] | [G] | [C] | [C] |
-# Chorus 1A
-Christ is my firm [Gsus]foun-[G]dation, the [Em7]rock on which I [D(4)]stand
-When ev'rything a-[Gsus]round me is [G]shaken, I've [Em7]never been more [D(4)]glad
-That I put my [C]faith in [G/B]Jesus, 'cause He's [Em7]never let me [D(4)]down
-He's faithful [C]through gener-[G/B]ations, so [Em7]why would He [D(4)]fail now
-# Interlude
-He [N.C.]won't, [G]He won't[Gsus]
-# Verse
-I've still got [Gsus]joy in [G]chaos, I've got [Em7]peace that makes no [D(4)]sense
-So, I won't be [C]go-[G/B]ing [Am]un-[G]der, I'm not [Em7]held by my own [D(4)]strength
-'Cause I've built my [C/E]life on [G/B]Jesus, He's [Em7]never [D/F#]let me [G]down[D(4)]
-He's faithful [C]in every [G/B]season, so [Em7]why would He [D(4)]fail now
-# Refrain
-He [N.C.]won't, [G]He won't, [Gsus]He won't [Em]fail[D] [Cmaj7]
-[Em]He won't [D]fail [G] [G/B] [Cmaj7]
-# Bridge
-(Oh,) [C]Rain came and [D]wind blew, but [G/B]my house was built on [Em]You[D]
-(And) I'm [C]safe with [D]You, I'm [G/B]going to make it [Em]through[D]
-# Chorus 1B
-Christ is my firm [Gsus]foun-[G]dation, the [Em7]rock on which I [D(4)]stand
-That I put my [C]faith in [G/B]Jesus, 'cause He's [Em7]never let me [D(4)]down
-# Ending
-He [N.C.]won't, [G]He won't, [Gsus]He won't [Em]fail,[D] [Cmaj7]
-[Em]He won't [D]fail, [G]no, He [G/B]won't [C] [G]`)},
+const SEED=[{"id":"firm-foundation","title":"Firm Foundation (He Won’t)","artist":"Cody Carnes, Austin Davis, Chandler Moore","key":"G","credit":"CCLI #7188203 · © 2021 Capitol CMG Paragon / TBCO / Writer’s Roof / A.L.K.D. · Used under CCLI #11287538.","sections":[{"label":"Intro","lines":["| [G] | [G] | [C] | [C] |"]},{"label":"Chorus 1A","lines":["Christ is my firm [Gsus]foun-[G]dation, the [Em7]rock on which I [D(4)]stand","When ev'rything a-[Gsus]round me is [G]shaken, I've [Em7]never been more [D(4)]glad","That I put my [C]faith in [G/B]Jesus, 'cause He's [Em7]never let me [D(4)]down","He's faithful [C]through gener-[G/B]ations, so [Em7]why would He [D(4)]fail now"]},{"label":"Interlude","lines":["He [N.C.]won't, [G]He won't[Gsus]"]},{"label":"Verse","lines":["I've still got [Gsus]joy in [G]chaos, I've got [Em7]peace that makes no [D(4)]sense","So, I won't be [C]go-[G/B]ing [Am]un-[G]der, I'm not [Em7]held by my own [D(4)]strength","'Cause I've built my [C/E]life on [G/B]Jesus, He's [Em7]never [D/F#]let me [G]down[D(4)]","He's faithful [C]in every [G/B]season, so [Em7]why would He [D(4)]fail now"]},{"label":"Refrain","lines":["He [N.C.]won't, [G]He won't, [Gsus]He won't [Em]fail[D] [Cmaj7]","[Em]He won't [D]fail [G] [G/B] [Cmaj7]"]},{"label":"Bridge","lines":["(Oh,) [C]Rain came and [D]wind blew, but [G/B]my house was built on [Em]You[D]","(And) I'm [C]safe with [D]You, I'm [G/B]going to make it [Em]through[D]"]},{"label":"Chorus 1B","lines":["Christ is my firm [Gsus]foun-[G]dation, the [Em7]rock on which I [D(4)]stand","That I put my [C]faith in [G/B]Jesus, 'cause He's [Em7]never let me [D(4)]down"]},{"label":"Ending","lines":["He [N.C.]won't, [G]He won't, [Gsus]He won't [Em]fail,[D] [Cmaj7]","[Em]He won't [D]fail, [G]no, He [G/B]won't [C] [G]"]}]},{"id":"amazing-grace","title":"Amazing Grace","artist":"John Newton (public domain)","key":"G","credit":"Public domain.","sections":[{"label":"Verse 1","lines":["[G]Amazing [G7]grace, how [C]sweet the [G]sound","That [G]saved a [Em]wretch like [D]me[D7]","I [G]once was [G7]lost, but [C]now am [G]found","Was [Em]blind, but [D]now I [G]see"]},{"label":"Verse 2","lines":["'Twas [G]grace that [G7]taught my [C]heart to [G]fear","And [G]grace my [Em]fears re-[D]lieved[D7]","How [G]precious [G7]did that [C]grace ap-[G]pear","The [Em]hour I [D]first be-[G]lieved"]}]},{"id":"the-same-jesus","title":"The Same Jesus","artist":"Matt Redman, Jacob Sooter, Josh Silverberg","key":"G","credit":"CCLI #7138933 · © 2019 River Wild / Hipgnosis Songs Essential / Jacob Sooter Music / So Essential Tunes / Vertical Church Band / Integrity Worship / Said And Done · Used under CCLI #11287538.","sections":[{"label":"Intro  (Woah, woah)","lines":["| [C] | [C] [G] | [D] | [D] [G/B] |"]},{"label":"Verse 1","lines":["[C]This Jesus that [Em]carried our [(D)]shame","[D]This Jesus who [G/B]rose from the [(C)]grave","[C]The same Jesus we [Em]worship to-[(D)]day","[D]We worship to-[G/B]day"]},{"label":"Verse 2","lines":["[C]Came to us with [Em]grace and in [(D)]truth","[D]Still with us and [G/B]still on the [(C)]move","[C]The same Jesus [Em]He is making us [(D)]new","[D]He is making us [G/B]new"]},{"label":"Chorus","lines":["[C]I know that my Redeemer [G]lives","[D]I know that my Redeemer [G/B]lives","[C]He's still keeping all His promis-[G]es","[D]The same Jesus the [G/B]same Jesus"]},{"label":"Interlude  (Woah, woah)","lines":["| [C] | [C] [G] | [D] | [D] [G/B] |"]},{"label":"Verse 3","lines":["[C]He's commanding the [Em]wind and the [(D)]waves","[D]His kingdom for-[G/B]ever shall [(C)]reign","[C]We know that He is [Em]coming a-[(D)]gain","[D]He is coming a-[G/B]gain   Oh"]},{"label":"Bridge","lines":["He's the [C]first and the last, the Be-[D]ginning and [G/B]End","At the sound of His [C]cry all the [D]world came a-[G/B]live","And He formed us from [C]dust, put His breath in our [D]lungs[G/B]","We were made for His [C]love but we ran from the [D]light[G/B]","But He wouldn't give [C]up on His daughters and [D]sons[G/B]","So He took up the [C]cross and He laid down His [C/E]life","And He did what He [D/F#]said when He rose from the [G/B]dead","And He's coming back a-[C]gain"]},{"label":"Ending  (Woah, woah)","lines":["||: [C] | [C] [G] | [D] | [D] [G/B] :|| [C] |"]}]},{"id":"goodness-of-god","title":"Goodness Of God","artist":"Jenn Johnson, Ed Cash, Jason Ingram, Ben Fielding, Brian Johnson — CeCe Winans arrangement","key":"G","credit":"CCLI #7117726 · © 2018 Capitol CMG Paragon / SHOUT! Music Publishing Australia / Fellow Ships / So Essential Tunes / Bethel Music · CeCe Winans arrangement · Used under CCLI #11287538.","sections":[{"label":"Intro","lines":["[G] [G/B] [D/F#] [Em]","[Em] [G] [C] [G/B]",""]},{"label":"Verse 1","lines":["I love You [G]Lord oh Your [C]mercy never [G]fails me","[D/F#]All my [Em7]days I've been [C]held in Your [D(4)]hands","From the moment that I [Em7]wake up [C]until I lay [G]my [D/F#]head [Em7]","I will [C]sing of the [D(4)]goodness of God [G] [G/B] [D/F#] [G]","",""]},{"label":"Chorus","lines":["[C2]All my life You have been [G]faithful [D/F#] [G/B] [C]","[C2]All my life You have been [G]so so good [D/F#] [G/B] [C]","[C2]With every breath that I am [G]able [D/F#] [Em7]","(1.) I will [C2]sing of the [D(4)]goodness of God [G] [G/B] [D/F#] [G]","","(2.) I will [C2]sing of the [D(4)]goodness of [G/B]God [C] [D(4)] [G](To Tag)","","(3.) I will [C2]sing of the [D(4)]goodness of [Em7]God [Em] [G/B] (ENDING)","",""]},{"label":"Verse 2","lines":["I love Your [G]voice You have [C]led me through the [G]fire","In [D/F#]darkest [Em7]night You are [C]close like no [D(4)]other","I've known You as a [Em7]father [C]I've known You as [G]a [D/F#]friend [Em7]","I have [C]lived in the [D(4)]goodness of [G]God [G/B] [D/F#] [G]","",""]},{"label":"Bridge","lines":["[G/B]Your goodness is [C2]running after it's [D(4)]running after [G]me","[G/B]Your goodness is [C2]running after it's [D(4)]running after [G]me","With my [G/B]life laid down I'm sur-[C2]rendered now I [D(4)]give You every-[Em7]thing","[G/B]Your goodness is [C2]running after it's [D(4)]running after [G]me","",""]},{"label":"Tag","lines":["I will [C2]sing of the [D(4)]goodness of [G]God"]}]},{"id":"lord-i-need-you","title":"Lord I Need You","artist":"Christy Nockels, Daniel Carson, Jesse Reeves, Kristian Stanfill, Matt Maher","key":"G","credit":"CCLI #5925687 · © 2011 sixsteps Music / Sweater Weather / Thankyou Music / Valley Of Songs / worshiptogether.com songs · Used under CCLI #11287538.","sections":[{"label":"Intro","lines":["[G] [C2(no3)] [G] [C2(no3)] [G]",""]},{"label":"Verse 1","lines":["Lord I [G]come [Gsus]I [G]confess","[D/F#]Bowing [Em7]here I [Dsus]find [C2(no3)]my rest","And without [G]You I [C2(no3)]fall [G]apart","You're the [Dsus]one [D]that guides my [C2(no3)]heart",""]},{"label":"Chorus 1","lines":["Lord I [G]need You [C]oh I [G]need [D/F#]You","[Em7]Ev'ry [C]hour I [G]need [D]You [(C)]","My [G/B]one de-[C]fense my [G/D]righteous-[C/E]ness","Oh [G/D]God how I [D]need [G]You [C2(no3)] [G]   (To Bridge / Chorus 2)",""]},{"label":"Verse 2","lines":["Where sin runs [G]deep Your [Gsus]grace [G]is more","Where [D/F#]grace is [Em7]found is [Dsus]where [C2(no3)]You are","And where You [G]are Lord [C2(no3)]I [G]am free","[Dsus]Holi-ness [D]is [C2(no3)]Christ in me","Where You [G]are Lord [C2(no3)]I [G]am free","[Dsus]Holi-ness [D]is [G]Christ in me",""]},{"label":"Bridge","lines":["So [C]teach my [G/B]song to [Dsus]rise to [Em7]You","When temptation [G/B]comes my [C2(no3)]way","And when I [C]cannot [G/B]stand I'll [Dsus]fall on [Em7]You","[C2(no3)]Jesus You're my [Dsus]hope and [G]stay","And when I [C]cannot [G/B]stand I'll [Dsus]fall on [Em7]You","[C2(no3)]Jesus You're my [Dsus]hope and [G]stay",""]},{"label":"Chorus 2","lines":["Lord I [G]need You oh I need [D/F#]You","[Em7]Ev'ry [C]hour I [G]need [D]You","My [G/B]one de-[C]fense my [G/D]righteous-[C/E]ness","Oh [G/D]God how I [D]need [G]You","My [G/B]one de-[C]fense my [G/D]righteous-[C/E]ness","Oh [G/D]God how I [D]need [G]You"]}]},{"id":"worthy-of-it-all","title":"Worthy Of It All","artist":"CeCe Winans","key":"Eb","bpm":"71","time":"4/4","credit":"CCLI #6280644 · © 2012 Common Hymnal Publishing / Innerland / Underground Treasure / Wayfinder Music · CeCe Winans arrangement (Believe For It) · Used under CCLI #11287538.","sections":[{"label":"Intro","lines":["[Absus2]    [Bbsus4]    [Absus2]    [Bbsus4]"]},{"label":"Verse 1","lines":["[Absus2]All the saints and [Bbsus4]angels","[Absus2]Bow before Your [Bbsus4]throne","[Absus2]All the elders [Bbsus4]cast their [Eb/G]crowns","[Absus2]Before the Lamb of God and sing"]},{"label":"Chorus","lines":["You are worthy of it [Eb]all","You are worthy of it [Bb]all","For from You are all [Ab]things and to You are all [Bb]things","You deserve the [Eb]glory"]},{"label":"Turnaround","lines":["[Absus2]    [Bbsus4]    [Absus2]    [Bbsus4]"]},{"label":"Interlude","lines":["| [Ab] | [Bb] | [Ab] | [Bb] | [Ab] | [Bb] | [Ab] [Bb] | [Eb] |"]},{"label":"Bridge","lines":["[Eb]Day and night night and day let incense a-[Gm7]rise","[Cm7]Day and night night and day let incense a-[Ab2]rise","[Eb/Bb]Day and night night and day let incense a-[Bb]rise","[Fm7]Day and night night and day let incense a-[Ab2]rise"]},{"label":"Vamp","lines":["| [Eb] | [Gm7] | [Cm7] | [Ab2] |","| [Eb/G] | [Bb] | [Fm7] | [Abmaj7] |"]},{"label":"Ending","lines":["[Ab]    [Bb]    [Eb]"]}],"arrangement":[{"ref":"Intro","note":"Piano, Electric Guitar & Pad"},{"ref":"Intro"},{"ref":"Verse 1"},{"ref":"Chorus"},{"ref":"Turnaround","note":"Intro melody"},{"ref":"Verse 1","note":"Full Band in · Kick & Snare groove"},{"ref":"Chorus"},{"ref":"Chorus"},{"ref":"Interlude","note":"Singing oh, oh…"},{"ref":"Interlude"},{"ref":"Bridge"},{"ref":"Bridge"},{"ref":"Vamp"},{"ref":"Chorus"},{"ref":"Chorus"},{"ref":"Ending"}]},{"id":"christmas-day","title":"Christmas Day","artist":"Chris Tomlin","key":"D","bpm":"90","time":"6/8","credit":"Writers: Martin Cash, Franni Cash, Scott Cash, Ed Cash, Andrew Bergthold · © 2019 Sparrow Records · a product of MultiTracks.com · Used under CCLI #11287538.","sections":[{"label":"Intro","lines":["[D]    [G]    [Bm]    [G]"]},{"label":"Verse 1","lines":["[D]Joy to the [D/F#]world","On a [Bm7]night like no [G]other","[D]Emmanu[D/F#]el","[G/B]God is [G]with us"]},{"label":"Verse 2","lines":["[D]Beggars and [D/F#]kings","Let us [Bm7]come and [G]adore Him","[D]Rest in His [D/F#]peace","[G/B]And bow [G]before Him"]},{"label":"Breakdown","lines":["[G]"]},{"label":"Chorus","lines":["Sing [D]all you people The Lord [G]Almighty reigns [D] [A]","Sing [Bm]every creature of God [G]Come bless His name [A]","For He is good [G]For He is good [A]","He was born [D/F#]to conquer the grave [G]","Light [G]of the world The reason [A]for Christmas Day"]},{"label":"Turnaround","lines":["[D]    [G]    [Bm]    [G]"]},{"label":"Verse 3","lines":["Stars [D]we have seen [D/F#]Over deserts [Bm7]and oceans [G]","The darkness [D]was deep [D/F#]But never [G]hopeless","Redemption [D/F#]came [A]And His name [G]is Jesus"]},{"label":"Bridge","lines":["From [D]the mountains We [Em7]will shout it out","For [Bm]the Lord Our God [G]Almighty reigns","He [D]is with us He [Em7]is with us now","For [Bm]the Lord Our God [G]Almighty reigns"]},{"label":"Vamp","lines":[]},{"label":"Tag","lines":["Light [G]of the world The reason [A]for Christmas Day"]},{"label":"Outro","lines":["[D]    [G]    [Bm]    [G]"]},{"label":"Ending","lines":["[D]"]}],"arrangement":[{"ref":"Intro","note":"Full band in"},{"ref":"Intro"},{"ref":"Verse 1","note":"Dynamics down · No groove"},{"ref":"Verse 2","note":"Bigger, more layers"},{"ref":"Breakdown","note":"1 bar break"},{"ref":"Chorus","note":"Bigger, no groove"},{"ref":"Turnaround","note":"All in, full groove"},{"ref":"Verse 3","note":"Dynamics back down"},{"ref":"Chorus","note":"All in"},{"ref":"Turnaround"},{"ref":"Bridge","note":"Dynamics down slightly"},{"ref":"Bridge","note":"Full dynamics"},{"ref":"Vamp","note":"1 bar Vamp"},{"ref":"Chorus","note":"Breakdown · Start building to repeat at “For He is good”"},{"ref":"Chorus","note":"All in"},{"ref":"Tag","note":"Breakdown"},{"ref":"Outro","note":"All in"},{"ref":"Ending"}]}];
 
-{id:'amazing-grace',title:'Amazing Grace',artist:'John Newton (public domain)',key:'G',credit:'Public domain.',sections:parseSong(
-`# Verse 1
-[G]Amazing [G7]grace, how [C]sweet the [G]sound
-That [G]saved a [Em]wretch like [D]me[D7]
-I [G]once was [G7]lost, but [C]now am [G]found
-Was [Em]blind, but [D]now I [G]see
-# Verse 2
-'Twas [G]grace that [G7]taught my [C]heart to [G]fear
-And [G]grace my [Em]fears re-[D]lieved[D7]
-How [G]precious [G7]did that [C]grace ap-[G]pear
-The [Em]hour I [D]first be-[G]lieved`)},
+const SEED_SETS=[{"id":"set-2026-06-14","name":"Sunday — 14 Jun 2026","songIds":["the-same-jesus","goodness-of-god","lord-i-need-you","worthy-of-it-all"],"keys":{"lord-i-need-you":{"leader":10,"play":7,"capo":0},"goodness-of-god":{"leader":5,"play":7,"capo":0},"worthy-of-it-all":{"leader":10,"play":7,"capo":0}}}];
 
-{id:'the-same-jesus',title:'The Same Jesus',artist:'Matt Redman, Jacob Sooter, Josh Silverberg',key:'G',credit:'CCLI #7138933 · © 2019 River Wild / Hipgnosis Songs Essential / Jacob Sooter Music / So Essential Tunes / Vertical Church Band / Integrity Worship / Said And Done · Used under CCLI #11287538.',sections:parseSong(
-`# Intro  (Woah, woah)
-| [C] | [C] [G] | [D] | [D] [G/B] |
-# Verse 1
-[C]This Jesus that [Em]carried our [(D)]shame
-[D]This Jesus who [G/B]rose from the [(C)]grave
-[C]The same Jesus we [Em]worship to-[(D)]day
-[D]We worship to-[G/B]day
-# Verse 2
-[C]Came to us with [Em]grace and in [(D)]truth
-[D]Still with us and [G/B]still on the [(C)]move
-[C]The same Jesus [Em]He is making us [(D)]new
-[D]He is making us [G/B]new
-# Chorus
-[C]I know that my Redeemer [G]lives
-[D]I know that my Redeemer [G/B]lives
-[C]He's still keeping all His promis-[G]es
-[D]The same Jesus the [G/B]same Jesus
-# Interlude  (Woah, woah)
-| [C] | [C] [G] | [D] | [D] [G/B] |
-# Verse 3
-[C]He's commanding the [Em]wind and the [(D)]waves
-[D]His kingdom for-[G/B]ever shall [(C)]reign
-[C]We know that He is [Em]coming a-[(D)]gain
-[D]He is coming a-[G/B]gain   Oh
-# Bridge
-He's the [C]first and the last, the Be-[D]ginning and [G/B]End
-At the sound of His [C]cry all the [D]world came a-[G/B]live
-And He formed us from [C]dust, put His breath in our [D]lungs[G/B]
-We were made for His [C]love but we ran from the [D]light[G/B]
-But He wouldn't give [C]up on His daughters and [D]sons[G/B]
-So He took up the [C]cross and He laid down His [C/E]life
-And He did what He [D/F#]said when He rose from the [G/B]dead
-And He's coming back a-[C]gain
-# Ending  (Woah, woah)
-||: [C] | [C] [G] | [D] | [D] [G/B] :|| [C] |`)},
-
-{id:'goodness-of-god',title:'Goodness Of God',artist:'Jenn Johnson, Ed Cash, Jason Ingram, Ben Fielding, Brian Johnson — CeCe Winans arrangement',key:'G',credit:'CCLI #7117726 · © 2018 Capitol CMG Paragon / SHOUT! Music Publishing Australia / Fellow Ships / So Essential Tunes / Bethel Music · CeCe Winans arrangement · Used under CCLI #11287538.',sections:parseSong(
-`# Intro
-[G] [G/B] [D/F#] [Em]
-[Em] [C] [G] [G/B]
-# Verse 1
-I love You [G]Lord oh Your [C]mercy never [G]fails me
-[D/F#]All my [Em7]days I've been [C]held in Your [D(4)]hands
-From the moment that I [Em7]wake up [C]until I lay [G]my [D/F#]head [Em7]
-I will [C]sing of the [D(4)]goodness of [G]God [G/B] [D/F#] [G]
-# Chorus
-[C2]All my life You have been [G]faithful [D/F#] [G/B] [C]
-[C2]All my life You have been [G]so so good [D/F#] [G/B] [C]
-[C2]With every breath that I am [G]able [D/F#] [Em7]
-(1.) I will [C2]sing of the [D(4)]goodness of [G]God [G/B] [D/F#] [Em]
-(2.) I will [C2]sing of the [D(4)]goodness of [Em7]God [Em] [G] [C] [G/B]   (To Tag)
-# Verse 2
-I love Your [G]voice You have [C]led me through the [G]fire
-In [D/F#]darkest [Em7]night You are [C]close like no [D(4)]other
-I've known You as a [Em7]father [C]I've known You as [G]a [D/F#]friend [Em7]
-I have [C]lived in the [D(4)]goodness of [G]God [G/B] [D/F#] [G]
-# Bridge
-[G/B]Your goodness is [C2]running after it's [D(4)]running after [G]me
-[G/B]Your goodness is [C2]running after it's [D(4)]running after [G]me
-With my [G/B]life laid down I'm sur-[C2]rendered now I [D(4)]give You every-[Em7]thing
-[G/B]Your goodness is [C2]running after it's [D(4)]running after [G]me
-# Tag
-I will [C2]sing of the [D(4)]goodness of [G]God`)},
-
-{id:'lord-i-need-you',title:'Lord I Need You',artist:'Christy Nockels, Daniel Carson, Jesse Reeves, Kristian Stanfill, Matt Maher',key:'G',credit:'CCLI #5925687 · © 2011 sixsteps Music / Sweater Weather / Thankyou Music / Valley Of Songs / worshiptogether.com songs · Used under CCLI #11287538.',sections:parseSong(
-`# Intro
-[G] [C2(no3)] [G] [C2(no3)] [G]
-# Verse 1
-Lord I [G]come [C2(no3)]I [G]confess
-[D/F#]Bowing [Em7]here I [Dsus]find [C2(no3)]my rest
-And without [G]You I [C2(no3)]fall [G]apart
-You're the [Dsus]one [D]that guides my [C2(no3)]heart
-# Chorus 1
-Lord I [G]need You [C]oh I [G]need [D/F#]You
-[Em7]Ev'ry [C]hour I [G]need [D]You [(C)]
-My [G/B]one de-[C]fense my [G/D]righteous-[C/E]ness
-Oh [G/D]God how I [D]need [G]You [C2(no3)] [G]   (To Bridge / Chorus 2)
-# Verse 2
-Where sin runs [G]deep Your [C2(no3)]grace [G]is more
-Where [D/F#]grace is [Em7]found is [Dsus]where [C2(no3)]You are
-And where You [G]are Lord [C2(no3)]I [G]am free
-[Dsus]Holi-ness [D]is [C2(no3)]Christ in me
-Where You [G]are Lord [C2(no3)]I [G]am free
-[Dsus]Holi-ness [D]is [G]Christ in me
-# Bridge
-So [C]teach my [G/B]song to [Dsus]rise to [Em7]You
-When temptation [G/B]comes my [C2(no3)]way
-And when I [C]cannot [G/B]stand I'll [Dsus]fall on [Em7]You
-[C2(no3)]Jesus You're my [Dsus]hope and [G]stay
-And when I [C]cannot [G/B]stand I'll [Dsus]fall on [Em7]You
-[C2(no3)]Jesus You're my [Dsus]hope and [G]stay
-# Chorus 2
-Lord I [G]need You oh I need [D/F#]You
-[Em7]Ev'ry [C]hour I [G]need [D]You
-My [G/B]one de-[C]fense my [G/D]righteous-[C/E]ness
-Oh [G/D]God how I [D]need [G]You
-My [G/B]one de-[C]fense my [G/D]righteous-[C/E]ness
-Oh [G/D]God how I [D]need [G]You`)},
-
-{id:'worthy-of-it-all',title:'Worthy Of It All',artist:'David Brymer, Ryan Hall',key:'Bb',credit:'CCLI #6280644 · © 2012 Common Hymnal Publishing / Innerland / Underground Treasure / Wayfinder Music · Used under CCLI #11287538.  (Also given in G — transpose down 3.)',sections:parseSong(
-`# Verse
-[Eb]All the saints and [F]angels
-[Eb]They bow before Your [F]throne
-[Eb]All the elders cast their [F]crowns
-Before the [Eb]Lamb of [F]God and [Bb]sing
-# Chorus 1A
-You are worthy of it [Bb]all
-You are worthy of it [F]all
-For from You are all [Eb]things and to You are all [F]things
-You deserve the [Bb]glory
-# Interlude 1  (Singing oh, oh...)
-| [Eb] | [F] | [Eb] | [F] | [Eb] | [F] | [Eb] [F] | [Bb] |
-# Instrumental
-| [Bb] | [Dm7] | [Gm7] | [Eb2] |
-| [Bb/D] | [F] | [Cm7] | [Ebmaj7] |
-# Bridge
-[Bb]Day and night night and day let incense a-[Dm7]rise
-[Gm7]Day and night night and day let incense a-[Eb2]rise
-[Bb/F]Day and night night and day let incense a-[F]rise
-[Cm7]Day and night night and day let incense a-[Eb2]rise
-# Interlude 2  (Oh, oh...)
-| [Bb] | [Bb] | [F] | [F] | [Cm7] | [Eb2] | [Bb] | [Bb] |
-# Chorus 1B
-You are worthy of it [Bb]all (oh)
-You are worthy of it [Fsus]all [F](oh)
-For from You are all [Eb](oh) and to You are all [F](oh)
-You deserve the [Bb]glory (oh)`)}
-];
-
-const SEED_SETS=[{id:'set-2026-06-14',name:'Sunday — 14 Jun 2026',songIds:['the-same-jesus','goodness-of-god','lord-i-need-you','worthy-of-it-all']}];
+/* ===================== arrangement editor ===================== */
+let arrDraft=[];
+function openArrange(){
+  const song=curSong();if(!song)return;
+  arrDraft=resolveArr(song).map(e=>({ref:e.ref,note:e.note||''}));
+  const st=activeSetObj();
+  document.getElementById('arrSub').innerHTML = st
+    ? 'Flow for <b>'+esc(song.title)+'</b>, saved to <b>'+esc(st.name)+'</b>. Reorder, duplicate (for ×2), add or remove sections — the original is one tap away.'
+    : 'Flow for <b>'+esc(song.title)+'</b>. Open a set first if you want this saved per-Sunday; otherwise it\u2019s saved on the song.';
+  renderArrRows();
+  const sel=document.getElementById('arrAddSel');
+  sel.innerHTML=(song.sections||[]).map(s=>'<option value="'+esc(s.label)+'">'+esc(s.label)+'</option>').join('');
+  document.getElementById('arranger').showModal();
+}
+function renderArrRows(){
+  const list=document.getElementById('arrList');
+  list.innerHTML=arrDraft.map((e,i)=>{
+    const m=secMeta(e.ref);const sl=splitLabel(e.ref);const nt=e.note||sl.paren;
+    return '<div class="arrRow"><div class="ord"><button data-up="'+i+'">▲</button><button data-dn="'+i+'">▼</button></div>'
+      +'<div class="nm"><i style="color:'+m.color+'">'+esc(m.code)+'</i><span class="lbl">'+esc(sl.name)+(nt?' <span class="nt">· '+esc(nt)+'</span>':'')+'</span></div>'
+      +'<div class="act"><button class="dup" data-dup="'+i+'" title="Duplicate">⧉</button><button class="del" data-del="'+i+'" title="Remove">✕</button></div></div>';
+  }).join('')||'<div class="arrSub">No sections in the flow. Add one below.</div>';
+  list.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{const i=+b.dataset.up;if(i>0){[arrDraft[i-1],arrDraft[i]]=[arrDraft[i],arrDraft[i-1]];commitArr();}});
+  list.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>{const i=+b.dataset.dn;if(i<arrDraft.length-1){[arrDraft[i+1],arrDraft[i]]=[arrDraft[i],arrDraft[i+1]];commitArr();}});
+  list.querySelectorAll('[data-dup]').forEach(b=>b.onclick=()=>{const i=+b.dataset.dup;arrDraft.splice(i+1,0,{ref:arrDraft[i].ref,note:arrDraft[i].note});commitArr();});
+  list.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{arrDraft.splice(+b.dataset.del,1);commitArr();});
+}
+function commitArr(){writeArr(S.selId,arrDraft.map(e=>({ref:e.ref,note:e.note})));renderArrRows();S.perform?renderPerform():render();}
+function wireArrange(){
+  document.getElementById('arrDone').onclick=()=>document.getElementById('arranger').close();
+  document.getElementById('arrAddBtn').onclick=()=>{const v=document.getElementById('arrAddSel').value;if(v){arrDraft.push({ref:v,note:''});commitArr();}};
+  document.getElementById('arrReset').onclick=()=>{arrDraft=defaultArr(curSong());commitArr();};
+}
 
 /* ===================== boot ===================== */
 function setSeg(id,val){document.querySelectorAll('#'+id+' button').forEach(b=>b.classList.toggle('on',+b.dataset.w===val));}
@@ -1002,18 +1127,20 @@ function wireStyle(){
 function boot(){
   wire();
   loadStyle();applyStyle();
+  try{S.full=localStorage.getItem('stagecharts_full')==='1';}catch(e){}
   const saved=store.load();
   if(saved&&saved.library&&saved.library.length){
-    library=saved.library;sets=saved.sets||[];overrides=saved.overrides||{};seedVersion=saved.seedVersion||0;
+    library=saved.library;sets=saved.sets||[];overrides=saved.overrides||{};arrangements=saved.arrangements||{};seedVersion=saved.seedVersion||0;
     if(seedVersion<SEED_VERSION){mergeSeed();seedVersion=SEED_VERSION;persist();}
   }else{
-    library=SEED.slice();sets=SEED_SETS.slice();overrides={};seedVersion=SEED_VERSION;persist();
+    library=SEED.slice();sets=SEED_SETS.map(s=>JSON.parse(JSON.stringify(s)));overrides={};arrangements={};seedVersion=SEED_VERSION;persist();
   }
   S.activeSet=sets.find(s=>s.id==='set-2026-06-14')?'set-2026-06-14':(sets[0]?sets[0].id:null);
   const first=setSongs()[0]||library[0];
   if(first)loadSongState(first.id);
   setMode('names');setCols(2);setSize(18);
   render();
+  switchView(S.activeSet?'setlist':'library');
 }
 boot();
 
