@@ -91,7 +91,7 @@
   .kb-val{font-family:'Inter',sans-serif;font-weight:800;font-size:28px;letter-spacing:-.02em}
   .keysub{font-family:'Inter',sans-serif;font-size:11px;color:var(--muted);text-align:right;line-height:1.45;max-width:150px}
   .keysub b{color:var(--accent2)}
-  .song{column-count:var(--cols);column-gap:30px;column-fill:auto;font-size:var(--songsize)}
+  .song{column-count:var(--cols);column-gap:30px;column-fill:balance;font-size:var(--songsize)}
   body.pageMode main>.page .song{flex:1;min-height:0}
   .section{break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid;border:1px solid var(--line);border-radius:13px;padding:12px 15px 13px;margin:0 0 11px}
   .song-meta{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);margin-top:2px}
@@ -231,6 +231,7 @@
   .pbtn.exit{color:#c0392b}
   .pkey{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:4px 6px}
   .pkey span{font-family:'Inter',sans-serif;font-weight:800;min-width:34px;text-align:center}
+  .pkey .pk-lab{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--muted);min-width:0;padding-left:4px}
   .pkey .pbtn{border:none;background:none;padding:6px 8px}
   select.pbtn{font-size:14px}
   /* bottom dock — live transport (metronome + autoscroll) */
@@ -292,6 +293,9 @@
   .scard,.setcard{display:flex;align-items:center;gap:12px;width:100%;text-align:left;appearance:none;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 15px;cursor:pointer;color:var(--ink);font-family:'Inter',sans-serif}
   .scard:active,.setcard:active{transform:translateY(1px)}
   .scard.sel,.setcard.sel{border-color:var(--accent2);box-shadow:0 0 0 1px var(--accent2)}
+  .setcard .sc-drag{cursor:grab;touch-action:none;color:var(--muted);font-size:19px;line-height:1;padding:6px 4px;user-select:none;flex:none}
+  #setView .scard-list.dragging{cursor:grabbing}
+  .setcard.set-dragging{opacity:.5}
   .sc-num{font-weight:800;color:var(--muted);min-width:18px;text-align:center;font-size:14px}
   .sc-main{flex:1;min-width:0}
   .sc-t{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -404,7 +408,7 @@
   <div id="performPage"></div>
   <div class="pbar hidden" id="pbar">
     <button class="pbtn" id="pPrev">‹ Prev</button>
-    <div class="pkey"><button class="pbtn" id="pKeyDown">▼</button><span id="pKey">G</span><button class="pbtn" id="pKeyUp">▲</button></div>
+    <div class="pkey"><span class="pk-lab">KEY</span><button class="pbtn" id="pKeyDown" title="Key down a half-step">▼</button><span id="pKey">G</span><button class="pbtn" id="pKeyUp" title="Key up a half-step">▲</button></div>
     <select class="pbtn" id="pCapo" title="Capo"></select>
     <button class="pbtn" id="pNext">Next ›</button>
   </div>
@@ -738,7 +742,8 @@ function mapStripHTML(entries,full){
     const m=secMeta(g.ref);const tgt=full?('pos'+g.pos):('ref'+slug(g.ref));
     h+='<button class="smchip" data-tgt="'+tgt+'" title="'+esc(g.ref)+(g.count>1?' ×'+g.count:'')+'"><span class="smcirc" style="--c:'+m.color+'">'+esc(m.code)+'</span>'+(g.count>1?'<span class="smsup">'+g.count+'</span>':'')+'</button>';
   });
-  h+='</div><div class="sm-tools"><button class="sm-btn" id="smFull">'+(full?'Full':'Condensed')+'</button><button class="sm-btn" id="smEdit" title="Edit arrangement">✎</button></div></div>';
+  const uniq=new Set(entries.map(e=>e.ref)).size;const hasReps=entries.length>uniq;
+  h+='</div><div class="sm-tools">'+(hasReps?'<button class="sm-btn" id="smFull">'+(full?'Full':'Condensed')+'</button>':'')+'<button class="sm-btn" id="smEdit" title="Edit arrangement">✎</button></div></div>';
   return h;
 }
 function renderPageHTML(song,leaderIdx,playIdx,capo,mode){
@@ -1155,6 +1160,26 @@ function renderLibraryView(){
   document.getElementById('libBackup').onclick=exportLib;
   document.getElementById('libRestore').onclick=()=>document.getElementById('impFile').click();
 }
+let setDragId=null,setMove=null,setUp=null;
+function startSetDrag(e,id){
+  const st=activeSetObj();if(!st)return;
+  e.preventDefault();e.stopPropagation();
+  setDragId=id;
+  const le=document.querySelector('#setView .scard-list');if(le)le.classList.add('dragging');
+  renderSetlistView();
+  setMove=ev=>{
+    ev.preventDefault();
+    const cards=[...document.querySelectorAll('#setView .setcard')];if(!cards.length)return;
+    const y=ev.clientY;let to=cards.length-1;
+    for(let k=0;k<cards.length;k++){const rc=cards[k].getBoundingClientRect();if(y<rc.top+rc.height/2){to=k;break;}}
+    const a=st.songIds,from=a.indexOf(setDragId);
+    if(from>=0&&to>=0&&to<a.length&&to!==from){const[it]=a.splice(from,1);a.splice(to,0,it);renderSetlistView();}
+  };
+  setUp=()=>{document.removeEventListener('pointermove',setMove);document.removeEventListener('pointerup',setUp);document.removeEventListener('pointercancel',setUp);const l=document.querySelector('#setView .scard-list');if(l)l.classList.remove('dragging');setDragId=null;persist();render();};
+  document.addEventListener('pointermove',setMove,{passive:false});
+  document.addEventListener('pointerup',setUp);
+  document.addEventListener('pointercancel',setUp);
+}
 function renderSetlistView(){
   const el=document.getElementById('setView');if(!el)return;
   const st=activeSetObj();const songs=st?setSongs():[];
@@ -1165,17 +1190,16 @@ function renderSetlistView(){
     h+='<div class="mv-setname">'+esc(st.name)+'</div>';
     if(!songs.length)h+='<div class="mv-empty">This set is empty. Add songs from your library below.</div>';
     else h+='<div class="scard-list">'+songs.map((s,i)=>{const ki=resolveState(s.id).leader;
-      return '<div class="setcard'+(s.id===S.selId?' sel':'')+'" data-open="'+s.id+'"><span class="sc-num">'+(i+1)+'</span>'
+      return '<div class="setcard'+(s.id===S.selId?' sel':'')+(s.id===setDragId?' set-dragging':'')+'" data-open="'+s.id+'"><span class="sc-drag" data-drag="'+s.id+'" title="Drag to reorder">⠿</span><span class="sc-num">'+(i+1)+'</span>'
         +'<div class="sc-main"><div class="sc-t">'+esc(s.title)+'</div><div class="sc-a">'+esc(s.artist||'')+'</div></div>'
         +'<select class="sc-leader" data-key="'+s.id+'" title="Leader key">'+keyOptions(ki)+'</select>'
-        +'<span class="sc-re"><button class="ic" data-up="'+s.id+'">▲</button><button class="ic" data-down="'+s.id+'">▼</button><button class="ic x" data-rm="'+s.id+'">✕</button></span></div>';}).join('')+'</div>';
+        +'<span class="sc-re"><button class="ic x" data-rm="'+s.id+'" title="Remove from set">✕</button></span></div>';}).join('')+'</div>';
     h+='<div class="mv-actions"><button class="btn" id="setAdd">＋ Add songs</button><button class="btn golive" id="goLive">▶ Go Live</button></div>';
   }
   el.innerHTML=h;
-  el.querySelectorAll('.setcard').forEach(n=>n.onclick=e=>{if(e.target.closest('.ic')||e.target.closest('.sc-leader'))return;openSong(n.dataset.open);switchView('reader');});
+  el.querySelectorAll('.setcard').forEach(n=>n.onclick=e=>{if(e.target.closest('.ic')||e.target.closest('.sc-leader')||e.target.closest('.sc-drag'))return;openSong(n.dataset.open);switchView('reader');});
   el.querySelectorAll('.sc-leader').forEach(sel=>sel.onchange=()=>setLeaderKey(sel.dataset.key,+sel.value));
-  el.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{moveInSet(b.dataset.up,-1);renderSetlistView();});
-  el.querySelectorAll('[data-down]').forEach(b=>b.onclick=()=>{moveInSet(b.dataset.down,1);renderSetlistView();});
+  el.querySelectorAll('.sc-drag').forEach(h=>h.addEventListener('pointerdown',e=>startSetDrag(e,h.dataset.drag)));
   el.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{removeFromSet(b.dataset.rm);renderSetlistView();});
   const ss=document.getElementById('setViewSel');if(ss)ss.onchange=e=>{S.activeSet=e.target.value||null;if(S.activeSet){const so=setSongs();if(so[0])loadSongState(so[0].id);}render();renderSetlistView();};
   const sn=document.getElementById('setNew');if(sn)sn.onclick=newSet;
