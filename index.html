@@ -91,7 +91,7 @@
   .kb-val{font-family:'Inter',sans-serif;font-weight:800;font-size:28px;letter-spacing:-.02em}
   .keysub{font-family:'Inter',sans-serif;font-size:11px;color:var(--muted);text-align:right;line-height:1.45;max-width:150px}
   .keysub b{color:var(--accent2)}
-  .song{column-count:var(--cols);column-gap:30px;column-fill:balance;font-size:var(--songsize)}
+  .song{column-count:var(--cols);column-gap:30px;column-fill:auto;font-size:var(--songsize)}
   body.pageMode main>.page .song{flex:1;min-height:0}
   .section{break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid;border:1px solid var(--line);border-radius:13px;padding:12px 15px 13px;margin:0 0 11px}
   .song-meta{font-family:'Inter',sans-serif;font-size:12px;color:var(--muted);margin-top:2px}
@@ -915,7 +915,7 @@ function tapTempo(){const now=performance.now();taps.push(now);taps=taps.filter(
 /* autoscroll — teleprompter: comfortable size, single column, smooth rAF */
 let scrollOn=false,scrollRAF=null,scrollAcc=0,scrollLast=0;
 function scrollBody(){return document.querySelector('#performPage .song');}
-function scrollStep(ts){if(!scrollOn)return;const body=scrollBody();if(!body){stopScroll();return;}if(!scrollLast)scrollLast=ts;const dt=Math.min(0.05,(ts-scrollLast)/1000);scrollLast=ts;scrollAcc+=getSpeed(S.selId)*9*dt;body.scrollTop=scrollAcc;if(body.scrollTop+body.clientHeight>=body.scrollHeight-1){stopScroll();return;}scrollRAF=requestAnimationFrame(scrollStep);}
+function scrollStep(ts){if(!scrollOn)return;const body=scrollBody();if(!body){stopScroll();return;}if(!scrollLast)scrollLast=ts;const dt=Math.min(0.05,(ts-scrollLast)/1000);scrollLast=ts;scrollAcc+=(getTempo(S.selId)/60)*getSpeed(S.selId)*6*dt;body.scrollTop=scrollAcc;if(body.scrollTop+body.clientHeight>=body.scrollHeight-1){stopScroll();return;}scrollRAF=requestAnimationFrame(scrollStep);}
 function startScroll(){const body=scrollBody();if(!body)return;scrollOn=true;scrollLast=0;body.style.columnCount=1;body.style.fontSize=Math.max(S.size,18)+'px';scrollAcc=body.scrollTop;const b=document.getElementById('aTog');if(b)b.classList.add('on');scrollRAF=requestAnimationFrame(scrollStep);}
 function stopScroll(restore){scrollOn=false;if(scrollRAF){cancelAnimationFrame(scrollRAF);scrollRAF=null;}const b=document.getElementById('aTog');if(b)b.classList.remove('on');if(restore!==false)fitPerform();}
 function toggleScroll(){scrollOn?stopScroll():startScroll();}
