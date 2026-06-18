@@ -239,6 +239,18 @@
   .pd-beat.sec{background:color-mix(in srgb,var(--blink-color,#e07a3c) 78%,transparent);border-color:var(--blink-color,#e07a3c)}
   .pd-beat.accent{background:var(--blink-color,#e07a3c);border-color:var(--blink-color,#e07a3c);transform:scale(1.18)}
   .pd-meter{font-family:'Inter',sans-serif;font-size:11px;font-weight:800;color:var(--muted);min-width:26px;text-align:center}
+  /* annotations */
+  .annot-canvas{position:absolute;left:0;top:0;z-index:3}
+  .annot-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 78px);z-index:130;display:none;align-items:center;gap:7px;padding:8px 10px;background:color-mix(in srgb,var(--panel) 96%,transparent);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 26px rgba(0,0,0,.20);max-width:94vw;flex-wrap:wrap;justify-content:center}
+  body.drawing .annot-bar{display:flex}
+  .annot-bar .ac{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0;flex:none}
+  .annot-bar .ac.on{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--ink)}
+  .annot-bar .ab{appearance:none;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;height:34px;min-width:38px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;padding:0 10px;line-height:1}
+  .annot-bar .ab:active{transform:translateY(1px)}
+  .annot-bar .ab.on{background:var(--accent2);border-color:var(--accent2);color:#fff}
+  .annot-bar .ab.done{background:var(--accent2);border-color:var(--accent2);color:#fff}
+  .annot-bar .sep{width:1px;height:24px;background:var(--line);margin:0 2px}
+  .btn.sq.on,.pfix-btn.on{background:var(--accent2);border-color:var(--accent2);color:#fff}
   @media(max-width:560px){.pd-lab{display:none}.pd-read{min-width:54px}}
   /* ===================== three-mode shell ===================== */
   #modebar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top) + 9px) 14px 9px;background:color-mix(in srgb,var(--panel) 92%,transparent);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
@@ -337,6 +349,7 @@
     <button class="btn sq" id="styleBtn" title="Chord display style">Aa</button>
     <button class="btn sq" id="themeBtn" title="Light / dark">◐</button>
     <button class="btn sq" id="performBtn" title="Full-screen performance mode">⛶</button>
+    <button class="btn sq" id="drawBtn" title="Annotate — draw on the chart">✏️</button>
     <button class="btn" id="printBtn">⎙ Print / PDF</button>
   </div>
   <div id="setbar"></div>
@@ -370,6 +383,7 @@
   <div class="ppos" id="ppos"></div>
   <div class="pfix" id="pfix">
     <button class="pfix-btn" id="pNum" title="Chords / Nashville numbers">123</button>
+    <button class="pfix-btn" id="pDraw" title="Annotate">✏️</button>
     <button class="pfix-btn exit" id="pExitFixed" title="Exit full screen">✕&nbsp;Exit</button>
   </div>
   <div id="performPage"></div>
@@ -456,6 +470,20 @@
   </div>
 </dialog>
 
+<div class="annot-bar" id="annotBar">
+  <button class="ac" data-col="#e23b2e" style="background:#e23b2e" title="Red"></button>
+  <button class="ac" data-col="#3b82f6" style="background:#3b82f6" title="Blue"></button>
+  <button class="ac" data-col="#27ae60" style="background:#27ae60" title="Green"></button>
+  <button class="ac" data-col="#e0a52e" style="background:#e0a52e" title="Yellow"></button>
+  <button class="ac" data-col="ink" style="background:var(--ink)" title="Ink"></button>
+  <span class="sep"></span>
+  <button class="ab" id="anHi" title="Highlighter">▰</button>
+  <button class="ab" id="anErase" title="Eraser">⌫</button>
+  <span class="sep"></span>
+  <button class="ab" id="anUndo" title="Undo">↶</button>
+  <button class="ab" id="anClear" title="Clear this song">Clear</button>
+  <button class="ab done" id="anDone" title="Done">Done</button>
+</div>
 <div id="printRoot"></div>
 
 <dialog id="editor" class="ui">
@@ -548,7 +576,7 @@ function parseLine(line){
 }
 
 /* ===================== state ===================== */
-const S={mode:'names',targetIdx:null,leaderIdx:null,capo:0,cols:2,size:18,page:false,dark:false,selId:null,activeSet:null,setIdx:0,perform:false,search:'',full:false};
+const S={mode:'names',targetIdx:null,leaderIdx:null,capo:0,cols:2,size:18,page:false,dark:false,selId:null,activeSet:null,setIdx:0,perform:false,search:'',full:false,draw:false};
 let library=[],sets=[],overrides={},arrangements={},seedVersion=0;
 const SEED_VERSION=10;   /* bump whenever a SEED song is corrected/added so installed apps refresh it */
 const store={
@@ -734,6 +762,7 @@ function render(){
   if(S.page)fitPage();
   renderSetSelect();renderSetbar();renderList();
   refreshShell();
+  attachAnnot();
 }
 function fitPage(){
   const page=document.querySelector('main>.page'),body=page&&page.querySelector('.song');
@@ -809,6 +838,7 @@ function renderPerform(){
   document.getElementById('pCapo').value=S.capo;
   fitPerform();
   perfDockOnRender();
+  attachAnnot();
 }
 function fitPerform(){
   const body=document.querySelector('#performPage .song');if(!body)return;
@@ -873,6 +903,87 @@ function wirePerformDock(){
   document.getElementById('aTog').onclick=toggleScroll;
   document.getElementById('aUp').onclick=()=>{setSpeed(S.selId,getSpeed(S.selId)+1);syncDock();};
   document.getElementById('aDown').onclick=()=>{setSpeed(S.selId,getSpeed(S.selId)-1);syncDock();};
+}
+
+/* ===================== annotations (per song, per device) ===================== */
+let annot={};
+function loadAnnot(){try{const s=localStorage.getItem('stagecharts_annot');if(s)annot=JSON.parse(s)||{};}catch(e){annot={};}}
+function saveAnnot(){try{localStorage.setItem('stagecharts_annot',JSON.stringify(annot));}catch(e){}}
+const ANN={color:'#e23b2e',hi:false,tool:'pen'};
+function inkColor(){const c=getComputedStyle(document.documentElement).getPropertyValue('--ink').trim();return c||'#222';}
+function strokeColor(c){return c==='ink'?inkColor():c;}
+function annStrokes(){if(!S.selId)return [];return annot[S.selId]||(annot[S.selId]=[]);}
+function annContainer(){return S.perform?document.querySelector('#performPage .song'):document.querySelector('#stage .song');}
+function drawStroke(ctx,s,w,h){
+  if(!s.p||!s.p.length)return;
+  ctx.save();ctx.strokeStyle=strokeColor(s.c);ctx.lineCap='round';ctx.lineJoin='round';
+  if(s.t==='hi'){ctx.globalAlpha=0.32;ctx.lineWidth=Math.max(8,(s.w||0.02)*w);}
+  else{ctx.globalAlpha=1;ctx.lineWidth=Math.max(1.5,(s.w||0.005)*w);}
+  ctx.beginPath();ctx.moveTo(s.p[0][0]*w,s.p[0][1]*h);
+  for(let i=1;i<s.p.length;i++)ctx.lineTo(s.p[i][0]*w,s.p[i][1]*h);
+  if(s.p.length===1)ctx.lineTo(s.p[0][0]*w+0.4,s.p[0][1]*h+0.4);
+  ctx.stroke();ctx.restore();
+}
+function redrawAnnot(cv){const ctx=cv._ctx;ctx.clearRect(0,0,cv._w,cv._h);annStrokes().forEach(s=>drawStroke(ctx,s,cv._w,cv._h));}
+function attachAnnot(){
+  const body=annContainer();if(!body)return;
+  body.style.position='relative';
+  let cv=body.querySelector('.annot-canvas');
+  if(!cv){cv=document.createElement('canvas');cv.className='annot-canvas';body.appendChild(cv);}
+  const w=Math.max(body.scrollWidth,body.clientWidth),h=Math.max(body.scrollHeight,body.clientHeight);
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);cv.style.width=w+'px';cv.style.height=h+'px';
+  const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+  cv._ctx=ctx;cv._w=w;cv._h=h;
+  cv.style.pointerEvents=S.draw?'auto':'none';cv.style.touchAction=S.draw?'none':'auto';
+  if(!cv._wired){wireAnnotCanvas(cv);cv._wired=true;}
+  redrawAnnot(cv);
+}
+let annDrawing=false,annCur=null;
+function wireAnnotCanvas(cv){
+  const pt=ev=>{const r=cv.getBoundingClientRect();return [(ev.clientX-r.left)/cv._w,(ev.clientY-r.top)/cv._h];};
+  cv.addEventListener('pointerdown',ev=>{
+    if(!S.draw)return;ev.preventDefault();try{cv.setPointerCapture(ev.pointerId);}catch(e){}
+    const p=pt(ev);
+    if(ANN.tool==='erase'){annDrawing=true;eraseAt(cv,p);return;}
+    annCur={t:ANN.hi?'hi':'pen',c:ANN.color,w:ANN.hi?0.02:0.005,p:[p]};annDrawing=true;
+  });
+  cv.addEventListener('pointermove',ev=>{
+    if(!S.draw||!annDrawing)return;ev.preventDefault();const p=pt(ev);
+    if(ANN.tool==='erase'){eraseAt(cv,p);return;}
+    annCur.p.push(p);const ctx=cv._ctx,w=cv._w,h=cv._h,n=annCur.p.length;
+    if(n>=2){ctx.save();ctx.strokeStyle=strokeColor(annCur.c);ctx.lineCap='round';ctx.lineJoin='round';
+      if(annCur.t==='hi'){ctx.globalAlpha=0.32;ctx.lineWidth=Math.max(8,annCur.w*w);}else{ctx.globalAlpha=1;ctx.lineWidth=Math.max(1.5,annCur.w*w);}
+      ctx.beginPath();ctx.moveTo(annCur.p[n-2][0]*w,annCur.p[n-2][1]*h);ctx.lineTo(annCur.p[n-1][0]*w,annCur.p[n-1][1]*h);ctx.stroke();ctx.restore();}
+  });
+  const end=()=>{if(!annDrawing)return;annDrawing=false;if(annCur&&annCur.p.length){annStrokes().push(annCur);saveAnnot();}annCur=null;redrawAnnot(cv);};
+  cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);
+}
+function eraseAt(cv,p){const arr=annStrokes();const th=0.022;let ch=false;for(let i=arr.length-1;i>=0;i--){if(arr[i].p.some(q=>Math.abs(q[0]-p[0])<th&&Math.abs(q[1]-p[1])<th)){arr.splice(i,1);ch=true;}}if(ch){saveAnnot();redrawAnnot(cv);}}
+function setDraw(on){
+  S.draw=on;document.body.classList.toggle('drawing',on);
+  const pd=document.getElementById('pDraw');if(pd)pd.classList.toggle('on',on);
+  const db=document.getElementById('drawBtn');if(db)db.classList.toggle('on',on);
+  if(on)syncAnnotBar();
+  attachAnnot();
+}
+function toggleDraw(){setDraw(!S.draw);}
+function syncAnnotBar(){
+  document.querySelectorAll('#annotBar .ac').forEach(b=>b.classList.toggle('on',b.dataset.col===ANN.color&&ANN.tool!=='erase'));
+  const hi=document.getElementById('anHi'),er=document.getElementById('anErase');
+  if(hi)hi.classList.toggle('on',ANN.hi&&ANN.tool!=='erase');
+  if(er)er.classList.toggle('on',ANN.tool==='erase');
+}
+function wireAnnot(){
+  const pd=document.getElementById('pDraw');if(pd)pd.onclick=toggleDraw;
+  const db=document.getElementById('drawBtn');if(db)db.onclick=toggleDraw;
+  document.querySelectorAll('#annotBar .ac').forEach(b=>b.onclick=()=>{ANN.color=b.dataset.col;ANN.tool='pen';syncAnnotBar();});
+  document.getElementById('anHi').onclick=()=>{ANN.hi=!ANN.hi;ANN.tool='pen';syncAnnotBar();};
+  document.getElementById('anErase').onclick=()=>{ANN.tool=(ANN.tool==='erase')?'pen':'erase';syncAnnotBar();};
+  document.getElementById('anUndo').onclick=()=>{const a=annStrokes();if(a.length){a.pop();saveAnnot();attachAnnot();}};
+  document.getElementById('anClear').onclick=()=>{if(annStrokes().length&&confirm('Clear all annotations on this song?')){annot[S.selId]=[];saveAnnot();attachAnnot();}};
+  document.getElementById('anDone').onclick=()=>setDraw(false);
+  syncAnnotBar();
 }
 
 /* ===================== three-mode shell (Library / Setlist / Performance) ===================== */
@@ -1038,8 +1149,8 @@ function saveEditor(){
   S.selId=obj.id;S.targetIdx=null;S.capo=0;persist();document.getElementById('editor').close();render();
 }
 function deleteEditor(){if(!editingId)return;if(!confirm('Delete this song?'))return;library=library.filter(s=>s.id!==editingId);sets.forEach(st=>st.songIds=st.songIds.filter(x=>x!==editingId));delete overrides[editingId];S.selId=library[0]?.id||null;S.targetIdx=null;persist();document.getElementById('editor').close();render();}
-function exportLib(){const blob=new Blob([JSON.stringify({library,sets,overrides,arrangements,seedVersion},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='stage-charts-backup.json';a.click();}
-function importLib(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d)){library=d;sets=[];overrides={};arrangements={};}else{library=d.library||[];sets=d.sets||[];overrides=d.overrides||{};arrangements=d.arrangements||{};seedVersion=d.seedVersion||seedVersion;}S.selId=library[0]?.id;S.activeSet=null;S.targetIdx=null;S.leaderIdx=null;persist();render();}catch(err){alert('That file could not be read.');}};r.readAsText(f);}
+function exportLib(){const blob=new Blob([JSON.stringify({library,sets,overrides,arrangements,annotations:annot,seedVersion},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='stage-charts-backup.json';a.click();}
+function importLib(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d)){library=d;sets=[];overrides={};arrangements={};}else{library=d.library||[];sets=d.sets||[];overrides=d.overrides||{};arrangements=d.arrangements||{};seedVersion=d.seedVersion||seedVersion;if(d.annotations){annot=d.annotations;saveAnnot();}}S.selId=library[0]?.id;S.activeSet=null;S.targetIdx=null;S.leaderIdx=null;persist();render();}catch(err){alert('That file could not be read.');}};r.readAsText(f);}
 
 /* ===================== wiring ===================== */
 function wire(){
@@ -1097,7 +1208,7 @@ function wire(){
     else if(e.key==='ArrowLeft'||e.key==='PageUp'){performGo(-1);e.preventDefault();}
     else if(e.key==='Escape'){exitPerform();}
   });
-  window.addEventListener('resize',()=>{if(S.perform)fitPerform();});
+  window.addEventListener('resize',()=>{if(S.perform)fitPerform();setTimeout(attachAnnot,60);});
   document.getElementById('edK').innerHTML=KEYS.map(k=>'<option value="'+k.n+'">'+k.n+'</option>').join('');
   document.getElementById('edCancel').onclick=()=>document.getElementById('editor').close();
   document.getElementById('edSave').onclick=saveEditor;
@@ -1202,7 +1313,7 @@ function wireStyle(){
 }
 function boot(){
   wire();
-  loadStyle();applyStyle();
+  loadStyle();applyStyle();loadAnnot();wireAnnot();
   try{S.full=localStorage.getItem('stagecharts_full')==='1';}catch(e){}
   const saved=store.load();
   if(saved&&saved.library&&saved.library.length){
