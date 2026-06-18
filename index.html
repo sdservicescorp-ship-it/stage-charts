@@ -203,7 +203,7 @@
   body.perform .perform-stage{display:flex}
   body.perform>header,body.perform .wrap{display:none!important}
   #performPage{flex:1;min-height:0;display:flex}
-  #performPage .page{flex:1;width:auto;max-width:none;margin:0;border:none;border-radius:0;box-shadow:none;background:var(--bg);padding:18px 26px;display:flex;flex-direction:column;overflow:hidden}
+  #performPage .page{flex:1;width:auto;max-width:none;margin:0;border:none;border-radius:0;box-shadow:none;background:var(--bg);padding:calc(env(safe-area-inset-top) + 44px) 26px 18px;display:flex;flex-direction:column;overflow:hidden}
   #performPage .song{flex:1;min-height:0;overflow:auto}
   .ppos{position:absolute;top:calc(env(safe-area-inset-top) + 8px);right:calc(env(safe-area-inset-right) + 14px);font-family:'Inter',sans-serif;font-size:13px;font-weight:800;color:var(--ink);background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);padding:7px 13px;border-radius:999px;cursor:pointer;z-index:6}
   .ppos:active{transform:translateY(1px)}
@@ -403,7 +403,6 @@
   </div>
   <div id="performPage"></div>
   <div class="pbar hidden" id="pbar">
-    <button class="pbtn exit" id="pExit" title="Exit">✕</button>
     <button class="pbtn" id="pPrev">‹ Prev</button>
     <div class="pkey"><button class="pbtn" id="pKeyDown">▼</button><span id="pKey">G</span><button class="pbtn" id="pKeyUp">▲</button></div>
     <select class="pbtn" id="pCapo" title="Capo"></select>
@@ -878,7 +877,8 @@ function fitPerform(){
   if(!fit){body.style.columnCount=1;body.style.fontSize=Math.max(S.size,16)+'px';body.scrollTop=0;}
 }
 let pbarTimer;
-function showPbar(){const b=document.getElementById('pbar');b.classList.remove('hidden');clearTimeout(pbarTimer);pbarTimer=setTimeout(()=>b.classList.add('hidden'),4500);}
+function placePbar(){const b=document.getElementById('pbar'),d=document.getElementById('pdock');if(b&&d)b.style.bottom=(d.offsetHeight+8)+'px';}
+function showPbar(){const b=document.getElementById('pbar');placePbar();b.classList.remove('hidden');clearTimeout(pbarTimer);pbarTimer=setTimeout(()=>b.classList.add('hidden'),4500);}
 function togglePbar(){const b=document.getElementById('pbar');b.classList.contains('hidden')?showPbar():b.classList.add('hidden');}
 function keyOptions(sel){return KEYS.map((k,i)=>'<option value="'+i+'"'+(i===sel?' selected':'')+'>'+k.n+'</option>').join('');}
 
@@ -1318,7 +1318,6 @@ function wire(){
   /* perform mode */
   document.getElementById('performBtn').onclick=enterPerform;
   wirePerformDock();
-  document.getElementById('pExit').onclick=exitPerform;
   document.getElementById('pExitFixed').onclick=exitPerform;
   document.getElementById('pNum').onclick=()=>{S.mode=(S.mode==='numbers')?'names':'numbers';renderPerform();};
   document.getElementById('pPrev').onclick=()=>performGo(-1);
@@ -1341,7 +1340,7 @@ function wire(){
     else if(e.key==='ArrowLeft'||e.key==='PageUp'){performGo(-1);e.preventDefault();}
     else if(e.key==='Escape'){exitPerform();}
   });
-  window.addEventListener('resize',()=>{if(S.perform)fitPerform();setTimeout(attachAnnot,60);});
+  window.addEventListener('resize',()=>{if(S.perform)fitPerform();setTimeout(()=>{attachAnnot();placePbar();},60);});
   document.getElementById('edK').innerHTML=KEYS.map(k=>'<option value="'+k.n+'">'+k.n+'</option>').join('');
   document.getElementById('edCancel').onclick=()=>document.getElementById('editor').close();
   document.getElementById('edSave').onclick=saveEditor;
