@@ -205,7 +205,21 @@
   #performPage{flex:1;min-height:0;display:flex}
   #performPage .page{flex:1;width:auto;max-width:none;margin:0;border:none;border-radius:0;box-shadow:none;background:var(--bg);padding:18px 26px;display:flex;flex-direction:column;overflow:hidden}
   #performPage .song{flex:1;min-height:0;overflow:auto}
-  .ppos{position:absolute;top:calc(env(safe-area-inset-top) + 8px);right:calc(env(safe-area-inset-right) + 14px);font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:var(--muted);background:color-mix(in srgb,var(--panel) 80%,transparent);padding:4px 11px;border-radius:999px;pointer-events:none}
+  .ppos{position:absolute;top:calc(env(safe-area-inset-top) + 8px);right:calc(env(safe-area-inset-right) + 14px);font-family:'Inter',sans-serif;font-size:13px;font-weight:800;color:var(--ink);background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);padding:7px 13px;border-radius:999px;cursor:pointer;z-index:6}
+  .ppos:active{transform:translateY(1px)}
+  .jumpdlg{width:min(560px,94vw);max-height:82vh;padding:0;border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+  .jumpdlg::backdrop{background:rgba(0,0,0,.5)}
+  .jump-input{width:100%;box-sizing:border-box;border:none;border-bottom:1px solid var(--line);background:var(--panel);color:var(--ink);font-family:'Inter',sans-serif;font-size:18px;font-weight:600;padding:16px 18px;outline:none}
+  .jump-list{max-height:66vh;overflow:auto;padding:6px}
+  .jump-it{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;cursor:pointer}
+  .jump-it:hover,.jump-it.sel{background:color-mix(in srgb,var(--accent2) 15%,transparent)}
+  .jump-it .ji-num{font-family:'Inter',sans-serif;font-weight:800;font-size:12px;color:#fff;background:var(--accent2);border-radius:6px;min-width:23px;height:23px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+  .jump-it .ji-num.lib{background:var(--muted)}
+  .jump-it .ji-main{flex:1;min-width:0}
+  .jump-it .ji-t{font-family:'Inter',sans-serif;font-weight:700;font-size:15.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .jump-it .ji-s{font-family:'Inter',sans-serif;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .jump-it .ji-k{font-family:'Inter',sans-serif;font-weight:800;font-size:12px;color:var(--accent2);flex:none}
+  .jump-sep{font-family:'Inter',sans-serif;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:11px 12px 4px}
   .pfix{position:absolute;top:calc(env(safe-area-inset-top) + 7px);left:calc(env(safe-area-inset-left) + 12px);display:flex;gap:8px;z-index:6}
   .pfix-btn{appearance:none;border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(8px);border-radius:999px;font-family:'Inter',sans-serif;font-weight:800;font-size:13px;color:var(--ink);padding:8px 14px;cursor:pointer;line-height:1}
   .pfix-btn:active{transform:translateY(1px)}
@@ -495,6 +509,10 @@
   <button class="ab" id="anClear" title="Clear this song">Clear</button>
   <button class="ab done" id="anDone" title="Done">Done</button>
 </div>
+<dialog id="jump" class="ui jumpdlg">
+  <input id="jumpInput" class="jump-input" type="text" placeholder="Jump to a song…" autocomplete="off" autocorrect="off" spellcheck="false">
+  <div id="jumpList" class="jump-list"></div>
+</dialog>
 <div id="printRoot"></div>
 
 <dialog id="editor" class="ui">
@@ -843,7 +861,7 @@ function renderPerform(){
   document.getElementById('performPage').innerHTML=renderPageHTML(song,S.leaderIdx,S.targetIdx,S.capo,S.mode);
   wireMapStrip(document.getElementById('performPage'));
   const list=navList();const i=list.findIndex(s=>s.id===S.selId);
-  document.getElementById('ppos').textContent=(i+1)+' / '+list.length;
+  document.getElementById('ppos').textContent='⌕ '+(i+1)+' / '+list.length;
   document.getElementById('pKey').textContent=(S.mode==='numbers')?'#':KEYS[S.targetIdx].n;
   const pn=document.getElementById('pNum');if(pn)pn.textContent=(S.mode==='numbers')?'ABC':'123';
   document.getElementById('pCapo').value=S.capo;
@@ -1051,6 +1069,54 @@ function wireAnnot(){
   document.getElementById('anClear').onclick=()=>{if(annStrokes().length&&confirm('Clear all annotations on this song?')){annot[S.selId]=[];saveAnnot();attachAnnot();}};
   document.getElementById('anDone').onclick=()=>setDraw(false);
   syncAnnotBar();
+}
+
+/* ===================== quick-jump song palette ===================== */
+let jumpSel=0,jumpItems=[];
+function keyName(id){const r=resolveState(id);return (r&&typeof r.leader==='number'&&r.leader>=0&&r.leader<12)?KEYS[r.leader].n:'';}
+function jumpRows(q){
+  q=(q||'').trim().toLowerCase();
+  const inSet=S.activeSet?setSongs():[];
+  const setIds=new Set(inSet.map(s=>s.id));
+  const match=s=>!q||s.title.toLowerCase().includes(q)||(s.artist||'').toLowerCase().includes(q);
+  const rows=[];
+  if(!q){
+    if(inSet.length){rows.push({sep:'This set'});inSet.forEach((s,i)=>rows.push({s,n:i+1}));}
+    const rest=[...library].filter(s=>!setIds.has(s.id)).sort((a,b)=>a.title.localeCompare(b.title));
+    if(rest.length){if(inSet.length)rows.push({sep:'Library'});rest.forEach(s=>rows.push({s}));}
+  }else{
+    inSet.filter(match).forEach(s=>rows.push({s,n:inSet.indexOf(s)+1}));
+    [...library].filter(s=>!setIds.has(s.id)&&match(s)).sort((a,b)=>a.title.localeCompare(b.title)).forEach(s=>rows.push({s}));
+  }
+  return rows;
+}
+function renderJump(q){
+  const list=document.getElementById('jumpList');const rows=jumpRows(q);
+  jumpItems=rows.filter(r=>r.s);jumpSel=0;
+  list.innerHTML=rows.map(r=>{
+    if(r.sep)return '<div class="jump-sep">'+esc(r.sep)+'</div>';
+    const s=r.s,kn=keyName(s.id),num=r.n?String(r.n):'♪';
+    return '<div class="jump-it" data-id="'+esc(s.id)+'"><span class="ji-num'+(r.n?'':' lib')+'">'+esc(num)+'</span>'
+      +'<div class="ji-main"><div class="ji-t">'+esc(s.title)+'</div>'+(s.artist?'<div class="ji-s">'+esc(s.artist)+'</div>':'')+'</div>'
+      +(kn?'<span class="ji-k">'+esc(kn)+'</span>':'')+'</div>';
+  }).join('')||'<div class="jump-sep">No matches</div>';
+  list.querySelectorAll('.jump-it').forEach(el=>el.onclick=()=>jumpPick(el.dataset.id));
+  highlightJump();
+}
+function highlightJump(){const els=[...document.querySelectorAll('#jumpList .jump-it')];els.forEach((e,i)=>e.classList.toggle('sel',i===jumpSel));const cur=els[jumpSel];if(cur)cur.scrollIntoView({block:'nearest'});}
+function jumpPick(id){document.getElementById('jump').close();if(id)openSong(id);}
+function openJump(){const dlg=document.getElementById('jump'),inp=document.getElementById('jumpInput');inp.value='';renderJump('');dlg.showModal();setTimeout(()=>{try{inp.focus();}catch(e){}},30);}
+function wireJump(){
+  const inp=document.getElementById('jumpInput'),dlg=document.getElementById('jump');
+  inp.oninput=()=>renderJump(inp.value);
+  inp.onkeydown=e=>{
+    if(e.key==='ArrowDown'){e.preventDefault();jumpSel=Math.min(jumpSel+1,jumpItems.length-1);highlightJump();}
+    else if(e.key==='ArrowUp'){e.preventDefault();jumpSel=Math.max(jumpSel-1,0);highlightJump();}
+    else if(e.key==='Enter'){e.preventDefault();const it=jumpItems[jumpSel];if(it)jumpPick(it.s.id);}
+    else if(e.key==='Escape'){e.preventDefault();dlg.close();}
+  };
+  dlg.addEventListener('click',e=>{const r=dlg.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dlg.close();});
+  const pp=document.getElementById('ppos');if(pp)pp.onclick=()=>{if(S.perform)openJump();};
 }
 
 /* ===================== three-mode shell (Library / Setlist / Performance) ===================== */
@@ -1380,7 +1446,7 @@ function wireStyle(){
 }
 function boot(){
   wire();
-  loadStyle();applyStyle();loadAnnot();wireAnnot();
+  loadStyle();applyStyle();loadAnnot();wireAnnot();wireJump();
   try{S.full=localStorage.getItem('stagecharts_full')==='1';}catch(e){}
   const saved=store.load();
   if(saved&&saved.library&&saved.library.length){
