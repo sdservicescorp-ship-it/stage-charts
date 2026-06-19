@@ -261,6 +261,9 @@
   .pd-tempo{display:flex;align-items:center;gap:4px}
   .pd-step{appearance:none;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:34px;height:40px;border-radius:9px;font-size:20px;font-weight:700;cursor:pointer;line-height:1}
   .pd-step:active{transform:translateY(1px)}
+  .pd-slider{-webkit-appearance:none;appearance:none;width:90px;height:6px;border-radius:5px;background:var(--line);outline:none;cursor:pointer}
+  .pd-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent2);border:none;cursor:pointer}
+  .pd-slider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--accent2);border:none;cursor:pointer}
   .pd-read{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:60px;height:40px;border:1px solid var(--line);background:var(--bg);border-radius:9px;cursor:pointer;padding:0 8px}
   .pd-read b{font-size:17px;font-weight:800;color:var(--ink);line-height:1}
   .pd-read small{font-size:8px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:2px}
@@ -281,7 +284,7 @@
   .annot-bar .ab.done{background:var(--accent2);border-color:var(--accent2);color:#fff}
   .annot-bar .sep{width:1px;height:24px;background:var(--line);margin:0 2px}
   .btn.sq.on,.pfix-btn.on{background:var(--accent2);border-color:var(--accent2);color:#fff}
-  @media(max-width:560px){.pd-lab{display:none}.pd-read{min-width:50px}.pdock{gap:8px}.pd-btn{min-width:42px;height:38px}.pd-group{gap:6px}}
+  @media(max-width:560px){.pd-lab{display:none}.pd-read{min-width:50px}.pdock{gap:8px}.pd-btn{min-width:42px;height:38px}.pd-group{gap:6px}.pd-slider{width:66px}}
   /* ===================== three-mode shell ===================== */
   #modebar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top) + 9px) 14px 9px;background:color-mix(in srgb,var(--panel) 92%,transparent);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
   .mb-brand{font-family:'Inter',sans-serif;font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px;color:var(--ink);white-space:nowrap}
@@ -429,6 +432,7 @@
     <div class="pd-group">
       <span class="pd-lab">Click</span>
       <button class="pd-btn met" id="mTog" title="Metronome — start/stop">▶</button>
+      <button class="pd-btn" id="mSilent" title="Click sound — tap for blinker-only">🔊</button>
       <div class="pd-tempo">
         <button class="pd-step" id="mDown" title="Slower">–</button>
         <button class="pd-read" id="mBpm" title="Tap tempo"><b id="mBpmVal">90</b><small>bpm·tap</small></button>
@@ -449,11 +453,7 @@
     <div class="pd-group">
       <span class="pd-lab">Pad</span>
       <button class="pd-btn pad" id="padTog" title="Ambient pad — follows the leader key">▶</button>
-      <div class="pd-tempo">
-        <button class="pd-step" id="padDown" title="Quieter">–</button>
-        <button class="pd-read" id="padVol"><b id="padVolVal">5</b><small>vol</small></button>
-        <button class="pd-step" id="padUp" title="Louder">+</button>
-      </div>
+      <input type="range" class="pd-slider" id="padVolRange" min="1" max="9" step="1" value="5" title="Pad volume" aria-label="Pad volume">
       <span class="pd-meter" id="padKey">G</span>
     </div>
   </div>
@@ -888,11 +888,22 @@ function renderPerform(){
 }
 function fitPerform(){
   const body=document.querySelector('#performPage .song');if(!body)return;
-  const wide=window.innerWidth>900;
-  body.style.columnCount=wide?2:1;
-  let fit=false;
-  for(let sz=28;sz>=14;sz--){body.style.fontSize=sz+'px';if(body.scrollHeight<=body.clientHeight+1){fit=true;break;}}
-  if(!fit){body.style.columnCount=1;body.style.fontSize=Math.max(S.size,16)+'px';body.scrollTop=0;}
+  const wide=window.innerWidth>900;const floor=18;let fit=false;
+  /* On a wide screen, try to fit the WHOLE song in two columns on one page —
+     accept only when nothing spills into hidden side-columns (scrollWidth guard). */
+  if(wide){
+    body.style.columnCount=2;
+    for(let sz=30;sz>=floor;sz--){body.style.fontSize=sz+'px';
+      if(body.scrollHeight<=body.clientHeight+1&&body.scrollWidth<=body.clientWidth+1){fit=true;break;}}
+  }
+  /* Otherwise a single column that fits top-to-bottom at a readable size. */
+  if(!fit){
+    body.style.columnCount=1;
+    for(let sz=30;sz>=floor;sz--){body.style.fontSize=sz+'px';
+      if(body.scrollHeight<=body.clientHeight+1){fit=true;break;}}
+  }
+  /* Long song: keep it readable and let it scroll vertically (whole song reachable). */
+  if(!fit){body.style.columnCount=1;body.style.fontSize=Math.max(S.size,20)+'px';body.scrollTop=0;}
 }
 let pbarTimer;
 function placePbar(){const b=document.getElementById('pbar'),d=document.getElementById('pdock');if(!b||!d)return;const r=d.getBoundingClientRect();b.style.bottom=Math.max(0,Math.round(window.innerHeight-r.top+8))+'px';}
@@ -902,7 +913,7 @@ function keyOptions(sel){return KEYS.map((k,i)=>'<option value="'+i+'"'+(i===sel
 
 /* ===================== live transport: metronome + autoscroll ===================== */
 let perfPref={tempo:{},scroll:{}};
-function loadPerf(){try{const s=localStorage.getItem('stagecharts_perf');if(s){const d=JSON.parse(s)||{};perfPref={tempo:d.tempo||{},scroll:d.scroll||{},padVol:d.padVol};}}catch(e){}}
+function loadPerf(){try{const s=localStorage.getItem('stagecharts_perf');if(s){const d=JSON.parse(s)||{};perfPref={tempo:d.tempo||{},scroll:d.scroll||{},padVol:d.padVol,silent:!!d.silent};}}catch(e){}}
 function savePerf(){try{localStorage.setItem('stagecharts_perf',JSON.stringify(perfPref));}catch(e){}}
 function clampBpm(v){return Math.max(40,Math.min(240,Math.round(v)));}
 function clampSpd(v){return Math.max(1,Math.min(9,Math.round(v)));}
@@ -924,7 +935,7 @@ function ensureAC(){if(!ac){try{ac=new (window.AudioContext||window.webkitAudioC
 /* lvl: 2 = downbeat, 1 = secondary pulse (compound), 0 = weak beat */
 function clickAt(time,lvl){const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=lvl===2?1560:(lvl===1?1240:1040);const peak=lvl===2?0.5:(lvl===1?0.36:0.26);g.gain.setValueAtTime(0.0001,time);g.gain.exponentialRampToValueAtTime(peak,time+0.001);g.gain.exponentialRampToValueAtTime(0.0001,time+0.05);o.connect(g).connect(ac.destination);o.start(time);o.stop(time+0.06);}
 function flashBeat(lvl,time){const ms=Math.max(0,(time-ac.currentTime)*1000);setTimeout(()=>{if(!metroOn)return;const d=document.getElementById('mBeat');if(!d)return;d.className='pd-beat '+(lvl===2?'accent':(lvl===1?'sec':'tick'));setTimeout(()=>{const dd=document.getElementById('mBeat');if(dd&&metroOn)dd.className='pd-beat';},85);},ms);}
-function metroScheduler(){if(!metroOn||!ac)return;const spb=60/getTempo(S.selId);const mt=meterOf(curSong());while(nextNoteTime<ac.currentTime+SCHED_AHEAD){const pos=beatNo%mt.beats;const lvl=pos===0?2:(mt.sec.has(pos)?1:0);clickAt(nextNoteTime,lvl);flashBeat(lvl,nextNoteTime);nextNoteTime+=spb;beatNo++;}metroTimer=setTimeout(metroScheduler,LOOKAHEAD);}
+function metroScheduler(){if(!metroOn||!ac)return;const spb=60/getTempo(S.selId);const mt=meterOf(curSong());while(nextNoteTime<ac.currentTime+SCHED_AHEAD){const pos=beatNo%mt.beats;const lvl=pos===0?2:(mt.sec.has(pos)?1:0);if(!perfPref.silent)clickAt(nextNoteTime,lvl);flashBeat(lvl,nextNoteTime);nextNoteTime+=spb;beatNo++;}metroTimer=setTimeout(metroScheduler,LOOKAHEAD);}
 function startMetro(){if(!ensureAC())return;metroOn=true;beatNo=0;nextNoteTime=ac.currentTime+0.07;const b=document.getElementById('mTog');if(b){b.classList.add('on');b.textContent='⏸';}metroScheduler();}
 function stopMetro(){metroOn=false;if(metroTimer){clearTimeout(metroTimer);metroTimer=null;}const b=document.getElementById('mTog');if(b){b.classList.remove('on');b.textContent='▶';}const d=document.getElementById('mBeat');if(d)d.className='pd-beat';}
 function toggleMetro(){metroOn?stopMetro():startMetro();}
@@ -988,7 +999,7 @@ function stopPad(){
     const n=padNodes;padNodes=null;setTimeout(()=>{try{n.oscs.forEach(o=>{o.stop();o.disconnect();});n.fLfo.stop();n.aLfo.stop();n.master.disconnect();}catch(e){}},1500);}
 }
 function togglePad(){padOn?stopPad():startPad();}
-function syncPadKey(){const el=document.getElementById('padKey');if(el)el.textContent=(typeof S.leaderIdx==='number'&&S.leaderIdx>=0&&S.leaderIdx<12)?KEYS[S.leaderIdx].n:'—';const v=document.getElementById('padVolVal');if(v)v.textContent=getPadVol();}
+function syncPadKey(){const el=document.getElementById('padKey');if(el)el.textContent=(typeof S.leaderIdx==='number'&&S.leaderIdx>=0&&S.leaderIdx<12)?KEYS[S.leaderIdx].n:'—';const r=document.getElementById('padVolRange');if(r)r.value=getPadVol();}
 
 /* dock sync + lifecycle */
 function syncDock(){const mv=document.getElementById('mBpmVal');if(mv)mv.textContent=getTempo(S.selId);const av=document.getElementById('aSpdVal');if(av)av.textContent=getSpeed(S.selId);const mm=document.getElementById('mMeter');if(mm){const s=curSong();mm.textContent=(s&&s.time)?s.time:'4/4';}syncPadKey();if(padOn)retunePad();}
@@ -1004,9 +1015,11 @@ function wirePerformDock(){
   document.getElementById('aUp').onclick=()=>{setSpeed(S.selId,getSpeed(S.selId)+1);syncDock();};
   document.getElementById('aDown').onclick=()=>{setSpeed(S.selId,getSpeed(S.selId)-1);syncDock();};
   document.getElementById('padTog').onclick=togglePad;
-  document.getElementById('padUp').onclick=()=>{setPadVol(getPadVol()+1);setPadMaster();syncPadKey();};
-  document.getElementById('padDown').onclick=()=>{setPadVol(getPadVol()-1);setPadMaster();syncPadKey();};
+  const pvr=document.getElementById('padVolRange');if(pvr){pvr.value=getPadVol();pvr.oninput=()=>{setPadVol(+pvr.value);setPadMaster();syncPadKey();};}
+  const ms=document.getElementById('mSilent');if(ms)ms.onclick=()=>{perfPref.silent=!perfPref.silent;savePerf();syncSilentBtn();};
+  syncSilentBtn();
 }
+function syncSilentBtn(){const b=document.getElementById('mSilent');if(!b)return;b.textContent=perfPref.silent?'🔇':'🔊';b.title=perfPref.silent?'Blinker-only (no click) — tap to turn the click on':'Click sound on — tap for blinker-only';}
 
 /* ===================== annotations (per song, per device) ===================== */
 let annot={};
@@ -1220,7 +1233,7 @@ function renderSetlistView(){
   const sn=document.getElementById('setNew');if(sn)sn.onclick=newSet;
   const sd=document.getElementById('setDel');if(sd)sd.onclick=delSet;
   const sa=document.getElementById('setAdd');if(sa)sa.onclick=openPicker;
-  const gl=document.getElementById('goLive');if(gl)gl.onclick=()=>{if(!songs.length)return;if(!S.selId||!songs.find(s=>s.id===S.selId))loadSongState(songs[0].id);enterPerform();};
+  const gl=document.getElementById('goLive');if(gl)gl.onclick=()=>{if(!songs.length)return;loadSongState(songs[0].id);enterPerform();};
 }
 function refreshShell(){if(S.view==='library')renderLibraryView();else if(S.view==='setlist')renderSetlistView();}
 function wireShell(){
