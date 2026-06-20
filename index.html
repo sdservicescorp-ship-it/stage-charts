@@ -220,9 +220,10 @@
   #performPage .page{flex:1;width:auto;max-width:none;margin:0;border:none;border-radius:0;box-shadow:none;background:var(--bg);padding:calc(env(safe-area-inset-top) + 44px) 26px 18px;display:flex;flex-direction:column;overflow:hidden}
   #performPage .psong-wrap{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
   #performPage .song{overflow:visible}
-  .metro-badge{display:none;width:78px;height:78px;border-radius:50%;border:3px solid var(--line);background:var(--bg);align-items:center;justify-content:center;cursor:pointer;flex:none;padding:0;-webkit-appearance:none;appearance:none;transition:background .06s,border-color .06s,transform .06s}
+  #performPage .song-head{align-items:center}
+  .metro-badge{display:none;width:156px;height:156px;border-radius:50%;border:4px solid var(--line);background:var(--bg);align-items:center;justify-content:center;cursor:pointer;flex:none;padding:0;-webkit-appearance:none;appearance:none;transition:background .06s,border-color .06s,transform .06s}
   body.perform .metro-badge{display:flex}
-  .metro-badge .metro-num{font-family:'Inter',sans-serif;font-weight:800;font-size:30px;color:var(--ink);line-height:1}
+  .metro-badge .metro-num{font-family:'Inter',sans-serif;font-weight:800;font-size:60px;color:var(--ink);line-height:1}
   .metro-badge.beat1{background:#fff;border-color:#fff}
   .metro-badge.beatx{background:#e0322c;border-color:#e0322c}
   .metro-badge.beat1 .metro-num,.metro-badge.beatx .metro-num{color:#111}
@@ -302,7 +303,7 @@
   .annot-bar .ab.done{background:var(--accent2);border-color:var(--accent2);color:#fff}
   .annot-bar .sep{width:1px;height:24px;background:var(--line);margin:0 2px}
   .btn.sq.on,.pfix-btn.on{background:var(--accent2);border-color:var(--accent2);color:#fff}
-  @media(max-width:560px){.pd-lab{display:none}.pd-read{min-width:50px}.pdock{gap:8px}.pd-btn{min-width:42px;height:38px}.pd-group{gap:6px}.pd-slider{width:66px}.metro-badge{width:58px;height:58px}.metro-badge .metro-num{font-size:23px}}
+  @media(max-width:560px){.pd-lab{display:none}.pd-read{min-width:50px}.pdock{gap:8px}.pd-btn{min-width:42px;height:38px}.pd-group{gap:6px}.pd-slider{width:66px}.metro-badge{width:104px;height:104px}.metro-badge .metro-num{font-size:42px}}
   /* ===================== three-mode shell ===================== */
   #modebar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top) + 9px) 14px 9px;background:color-mix(in srgb,var(--panel) 92%,transparent);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
   .mb-brand{font-family:'Inter',sans-serif;font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px;color:var(--ink);white-space:nowrap}
@@ -467,6 +468,7 @@
         <button class="pd-step" id="aUp" title="Faster">+</button>
       </div>
       <button class="pd-btn scroll" id="aTog" title="Autoscroll — start/stop">⇊</button>
+      <button class="pd-read" id="aLead" title="Count-in bars before autoscroll starts"><b id="aLeadVal">2</b><small>bars</small></button>
     </div>
     <div class="pd-group">
       <span class="pd-lab">Pad</span>
@@ -943,7 +945,7 @@ function keyOptions(sel){return KEYS.map((k,i)=>'<option value="'+i+'"'+(i===sel
 
 /* ===================== live transport: metronome + autoscroll ===================== */
 let perfPref={tempo:{},scroll:{}};
-function loadPerf(){try{const s=localStorage.getItem('stagecharts_perf');if(s){const d=JSON.parse(s)||{};perfPref={tempo:d.tempo||{},scroll:d.scroll||{},padVol:d.padVol,silent:!!d.silent};}}catch(e){}}
+function loadPerf(){try{const s=localStorage.getItem('stagecharts_perf');if(s){const d=JSON.parse(s)||{};perfPref={tempo:d.tempo||{},scroll:d.scroll||{},padVol:d.padVol,silent:!!d.silent,lead:d.lead};}}catch(e){}}
 function savePerf(){try{localStorage.setItem('stagecharts_perf',JSON.stringify(perfPref));}catch(e){}}
 function clampBpm(v){return Math.max(40,Math.min(240,Math.round(v)));}
 function clampSpd(v){return Math.max(1,Math.min(9,Math.round(v)));}
@@ -951,6 +953,9 @@ function getTempo(id){const t=perfPref.tempo[id];if(t)return clampBpm(t);const s
 function setTempo(id,v){perfPref.tempo[id]=clampBpm(v);savePerf();}
 function getSpeed(id){const s=perfPref.scroll[id];return s?clampSpd(s):3;}
 function setSpeed(id,v){perfPref.scroll[id]=clampSpd(v);savePerf();}
+function getLead(){const v=perfPref.lead;return (v==null)?2:Math.max(0,Math.min(8,v|0));}
+function cycleLead(){const seq=[0,1,2,4];let i=seq.indexOf(getLead());i=(i+1)%seq.length;perfPref.lead=seq[i];savePerf();syncLeadBtn();}
+function syncLeadBtn(){const b=document.getElementById('aLeadVal');if(b)b.textContent=getLead();}
 /* metronome — lookahead scheduler for stable timing (Web Audio) */
 let ac=null,metroOn=false,nextNoteTime=0,beatNo=0,metroTimer=null;const LOOKAHEAD=25,SCHED_AHEAD=0.12;
 /* bar length + accent pattern follow the song's time signature */
@@ -974,12 +979,20 @@ function toggleMetro(){metroOn?stopMetro():startMetro();}
 let taps=[];
 function tapTempo(){const now=performance.now();taps.push(now);taps=taps.filter(t=>now-t<3000);if(taps.length>=2){let sum=0;for(let i=1;i<taps.length;i++)sum+=taps[i]-taps[i-1];setTempo(S.selId,clampBpm(60000/(sum/(taps.length-1))));syncDock();}}
 /* autoscroll — teleprompter: comfortable size, single column, smooth rAF */
-let scrollOn=false,scrollRAF=null,scrollAcc=0,scrollLast=0;
+let scrollOn=false,scrollRAF=null,scrollAcc=0,scrollLast=0,scrollStartAt=0,scrollStartedMetro=false;
 function scrollBody(){return document.querySelector('#performPage .psong-wrap');}
 function songEl(){return document.querySelector('#performPage .song');}
-function scrollStep(ts){if(!scrollOn)return;const body=scrollBody();if(!body){stopScroll();return;}if(!scrollLast)scrollLast=ts;const dt=Math.min(0.05,(ts-scrollLast)/1000);scrollLast=ts;scrollAcc+=(getTempo(S.selId)/60)*getSpeed(S.selId)*6*dt;body.scrollTop=scrollAcc;if(body.scrollTop+body.clientHeight>=body.scrollHeight-1){stopScroll();return;}scrollRAF=requestAnimationFrame(scrollStep);}
-function startScroll(){const wrap=scrollBody(),song=songEl();if(!wrap||!song)return;scrollOn=true;scrollLast=0;song.style.columnCount=1;song.style.fontSize=Math.max(S.size,18)+'px';scrollAcc=wrap.scrollTop;const b=document.getElementById('aTog');if(b)b.classList.add('on');scrollRAF=requestAnimationFrame(scrollStep);}
-function stopScroll(restore){scrollOn=false;if(scrollRAF){cancelAnimationFrame(scrollRAF);scrollRAF=null;}const b=document.getElementById('aTog');if(b)b.classList.remove('on');if(restore!==false)fitPerform();}
+function scrollStep(ts){if(!scrollOn)return;const body=scrollBody();if(!body){stopScroll();return;}
+  /* count-in: hold still until the lead-in bars have elapsed on the metronome clock */
+  if(ac&&ac.currentTime<scrollStartAt){scrollRAF=requestAnimationFrame(scrollStep);return;}
+  if(!scrollLast)scrollLast=ts;const dt=Math.min(0.05,(ts-scrollLast)/1000);scrollLast=ts;scrollAcc+=(getTempo(S.selId)/60)*getSpeed(S.selId)*6*dt;body.scrollTop=scrollAcc;if(body.scrollTop+body.clientHeight>=body.scrollHeight-1){stopScroll();return;}scrollRAF=requestAnimationFrame(scrollStep);}
+function startScroll(){const wrap=scrollBody(),song=songEl();if(!wrap||!song)return;scrollOn=true;scrollLast=0;song.style.columnCount=1;song.style.fontSize=Math.max(S.size,18)+'px';scrollAcc=wrap.scrollTop;
+  /* lock the scroll to the metronome: start it if needed, then wait the lead-in bars */
+  scrollStartedMetro=false;if(!metroOn){startMetro();scrollStartedMetro=true;}
+  const mt=meterOf(curSong());const spb=60/getTempo(S.selId);
+  scrollStartAt=((ac?ac.currentTime:0)+0.07)+getLead()*mt.beats*spb;
+  const b=document.getElementById('aTog');if(b)b.classList.add('on');scrollRAF=requestAnimationFrame(scrollStep);}
+function stopScroll(restore){scrollOn=false;if(scrollRAF){cancelAnimationFrame(scrollRAF);scrollRAF=null;}if(scrollStartedMetro){stopMetro();scrollStartedMetro=false;}const b=document.getElementById('aTog');if(b)b.classList.remove('on');if(restore!==false)fitPerform();}
 function toggleScroll(){scrollOn?stopScroll():startScroll();}
 /* ambient pad — sustained drone synthesised in Web Audio, auto-tuned to the leader (concert) key */
 let padOn=false,padNodes=null;
@@ -1035,7 +1048,7 @@ function togglePad(){padOn?stopPad():startPad();}
 function syncPadKey(){const el=document.getElementById('padKey');if(el)el.textContent=(typeof S.leaderIdx==='number'&&S.leaderIdx>=0&&S.leaderIdx<12)?KEYS[S.leaderIdx].n:'—';const r=document.getElementById('padVolRange');if(r)r.value=getPadVol();}
 
 /* dock sync + lifecycle */
-function syncDock(){const mv=document.getElementById('mBpmVal');if(mv)mv.textContent=getTempo(S.selId);const av=document.getElementById('aSpdVal');if(av)av.textContent=getSpeed(S.selId);const mm=document.getElementById('mMeter');if(mm){const s=curSong();mm.textContent=(s&&s.time)?s.time:'4/4';}syncPadKey();if(padOn)retunePad();}
+function syncDock(){const mv=document.getElementById('mBpmVal');if(mv)mv.textContent=getTempo(S.selId);const av=document.getElementById('aSpdVal');if(av)av.textContent=getSpeed(S.selId);const mm=document.getElementById('mMeter');if(mm){const s=curSong();mm.textContent=(s&&s.time)?s.time:'4/4';}syncLeadBtn();syncPadKey();if(padOn)retunePad();}
 function perfDockOnRender(){if(scrollOn)stopScroll(false);syncDock();}
 function perfTransportReset(){stopMetro();stopPad();if(scrollOn)stopScroll(false);syncDock();}
 function wirePerformDock(){
@@ -1045,6 +1058,7 @@ function wirePerformDock(){
   document.getElementById('mDown').onclick=()=>{const t=getTempo(S.selId);setTempo(S.selId,t-(t>120?5:2));syncDock();};
   document.getElementById('mBpm').onclick=tapTempo;
   document.getElementById('aTog').onclick=toggleScroll;
+  const al=document.getElementById('aLead');if(al)al.onclick=cycleLead;
   document.getElementById('aUp').onclick=()=>{setSpeed(S.selId,getSpeed(S.selId)+1);syncDock();};
   document.getElementById('aDown').onclick=()=>{setSpeed(S.selId,getSpeed(S.selId)-1);syncDock();};
   document.getElementById('padTog').onclick=togglePad;
