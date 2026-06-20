@@ -224,12 +224,13 @@
   .metro-badge{display:none;width:156px;height:156px;border-radius:50%;border:4px solid var(--line);background:var(--bg);align-items:center;justify-content:center;cursor:pointer;flex:none;padding:0;-webkit-appearance:none;appearance:none}
   body.perform .metro-badge{display:flex}
   .metro-badge .metro-num{font-family:'Inter',sans-serif;font-weight:800;font-size:60px;color:var(--ink);line-height:1}
-  /* visual metronome — size snaps instantly (sharp, no ease-in), a short flash blinks each beat: weak=red small, secondary accent=green big, downbeat "1"=black big with a white ring-crack */
-  @keyframes mbFlash{0%{filter:brightness(2)}20%{filter:brightness(1)}100%{filter:brightness(1)}}
-  @keyframes mbCrack{0%{filter:brightness(2.4);box-shadow:0 0 0 6px rgba(255,255,255,0.95),0 0 14px 4px rgba(255,255,255,0.5)}20%{filter:brightness(1)}38%{box-shadow:0 0 0 0 rgba(255,255,255,0),0 0 0 0 rgba(255,255,255,0)}100%{filter:brightness(1);box-shadow:0 0 0 0 rgba(255,255,255,0),0 0 0 0 rgba(255,255,255,0)}}
-  .metro-badge.lvl0{transform:scale(0.5);background:#c0392b;border-color:#e7574a;animation:mbFlash 110ms ease-out forwards}
-  .metro-badge.lvl1{transform:scale(1.08);background:#1faa52;border-color:#4fe487;animation:mbFlash 110ms ease-out forwards}
-  .metro-badge.lvl2{transform:scale(1.22);background:#141414;border-color:#ffffff;animation:mbCrack 110ms ease-out forwards}
+  /* visual metronome — each beat the badge POPS + flashes (clear, visible blink) then settles fast to its size: weak=red small, secondary accent=green big, downbeat "1"=black big with a white ring-crack */
+  @keyframes mbBeat0{0%{transform:scale(0.62);filter:brightness(2)}45%{filter:brightness(1)}65%{transform:scale(0.5)}100%{transform:scale(0.5);filter:brightness(1)}}
+  @keyframes mbBeat1{0%{transform:scale(1.2);filter:brightness(1.85)}45%{filter:brightness(1)}65%{transform:scale(1.08)}100%{transform:scale(1.08);filter:brightness(1)}}
+  @keyframes mbBeat2{0%{transform:scale(1.36);filter:brightness(1.85);box-shadow:0 0 0 6px rgba(255,255,255,0.95),0 0 14px 4px rgba(255,255,255,0.5)}38%{box-shadow:0 0 0 0 rgba(255,255,255,0),0 0 0 0 rgba(255,255,255,0)}45%{filter:brightness(1)}65%{transform:scale(1.22)}100%{transform:scale(1.22);filter:brightness(1);box-shadow:0 0 0 0 rgba(255,255,255,0),0 0 0 0 rgba(255,255,255,0)}}
+  .metro-badge.lvl0{background:#c0392b;border-color:#e7574a;animation:mbBeat0 120ms ease-out forwards}
+  .metro-badge.lvl1{background:#1faa52;border-color:#4fe487;animation:mbBeat1 120ms ease-out forwards}
+  .metro-badge.lvl2{background:#141414;border-color:#ffffff;animation:mbBeat2 120ms ease-out forwards}
   .metro-badge.lvl0 .metro-num,.metro-badge.lvl1 .metro-num,.metro-badge.lvl2 .metro-num{color:#fff}
   .ppos{position:absolute;top:calc(env(safe-area-inset-top) + 8px);right:calc(env(safe-area-inset-right) + 14px);font-family:'Inter',sans-serif;font-size:13px;font-weight:800;color:var(--ink);background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);padding:7px 13px;border-radius:999px;cursor:pointer;z-index:6}
   .ppos:active{transform:translateY(1px)}
