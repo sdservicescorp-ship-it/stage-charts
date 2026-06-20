@@ -224,10 +224,10 @@
   .metro-badge{display:none;position:relative;width:156px;height:156px;border-radius:50%;border:4px solid var(--line);background:var(--bg);align-items:center;justify-content:center;cursor:pointer;flex:none;padding:0;-webkit-appearance:none;appearance:none;transition:background-color .05s ease-out,border-color .05s ease-out}
   body.perform .metro-badge{display:flex}
   .metro-badge .metro-num{font-family:'Inter',sans-serif;font-weight:800;font-size:60px;color:var(--ink);line-height:1}
-  /* visual metronome — the big badge flashes exactly like the dock dot below it: it NEVER changes size; only the fill COLOUR flashes per beat — weak beats=red, secondary accents=green, downbeat "1"=black. Driven from the same audio-clock loop and cleared on the same ~110ms timer, so both stay in lockstep. */
+  /* visual metronome — the big badge flashes exactly like the dock dot below it: it NEVER changes size; only the fill COLOUR flashes per beat — downbeat "1" and accents = green, weak beats = red (green,red,red,red…). Green is visible on BOTH light and dark themes; the old black downbeat vanished against the near-black dark background, which read as a skipped beat. Driven from the same audio-clock loop, cleared on the same ~110ms timer, so both stay in lockstep. */
   .metro-badge.lvl0{background:#c0392b;border-color:#c0392b}
   .metro-badge.lvl1{background:#1faa52;border-color:#1faa52}
-  .metro-badge.lvl2{background:#141414;border-color:#141414}
+  .metro-badge.lvl2{background:#1faa52;border-color:#1faa52}
   .metro-badge.run .metro-num{opacity:0}
   .metro-badge.run.lvl0 .metro-num,.metro-badge.run.lvl1 .metro-num,.metro-badge.run.lvl2 .metro-num{opacity:1;color:#fff}
   .metro-badge.lvl0 .metro-num,.metro-badge.lvl1 .metro-num,.metro-badge.lvl2 .metro-num{color:#fff}
