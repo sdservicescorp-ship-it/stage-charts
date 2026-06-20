@@ -218,7 +218,15 @@
   body.perform>header,body.perform .wrap{display:none!important}
   #performPage{flex:1;min-height:0;display:flex}
   #performPage .page{flex:1;width:auto;max-width:none;margin:0;border:none;border-radius:0;box-shadow:none;background:var(--bg);padding:calc(env(safe-area-inset-top) + 44px) 26px 18px;display:flex;flex-direction:column;overflow:hidden}
-  #performPage .song{flex:1;min-height:0;overflow:auto}
+  #performPage .psong-wrap{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
+  #performPage .song{overflow:visible}
+  .metro-badge{display:none;width:78px;height:78px;border-radius:50%;border:3px solid var(--line);background:var(--bg);align-items:center;justify-content:center;cursor:pointer;flex:none;padding:0;-webkit-appearance:none;appearance:none;transition:background .06s,border-color .06s,transform .06s}
+  body.perform .metro-badge{display:flex}
+  .metro-badge .metro-num{font-family:'Inter',sans-serif;font-weight:800;font-size:30px;color:var(--ink);line-height:1}
+  .metro-badge.beat1{background:#fff;border-color:#fff}
+  .metro-badge.beatx{background:#e0322c;border-color:#e0322c}
+  .metro-badge.beat1 .metro-num,.metro-badge.beatx .metro-num{color:#111}
+  .metro-badge.pulse{transform:scale(1.08)}
   .ppos{position:absolute;top:calc(env(safe-area-inset-top) + 8px);right:calc(env(safe-area-inset-right) + 14px);font-family:'Inter',sans-serif;font-size:13px;font-weight:800;color:var(--ink);background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);padding:7px 13px;border-radius:999px;cursor:pointer;z-index:6}
   .ppos:active{transform:translateY(1px)}
   .jumpdlg{width:min(560px,94vw);max-height:82vh;padding:0;border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.35)}
@@ -264,6 +272,16 @@
   .pd-slider{-webkit-appearance:none;appearance:none;width:90px;height:6px;border-radius:5px;background:var(--line);outline:none;cursor:pointer}
   .pd-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent2);border:none;cursor:pointer}
   .pd-slider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--accent2);border:none;cursor:pointer}
+  .sm-wrap{display:flex;flex-direction:column;gap:11px;min-width:270px;max-width:340px}
+  .sm-wrap h2{margin:0 0 2px;font-family:'Inter',sans-serif;font-size:19px}
+  .sm-lbl{font-family:'Inter',sans-serif;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-top:6px}
+  .sm-date,.sm-time{font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif}
+  .sm-day{font-family:'Inter',sans-serif;font-size:17px;font-weight:800;color:var(--accent2)}
+  .sm-svc{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .sm-svc .sm-time{flex:1}
+  .sm-empty{font-size:13px;color:var(--muted);font-style:italic;margin-bottom:6px}
+  .sm-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
+  .mv-setsvc{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--muted);margin:-4px 0 12px}
   .pd-read{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:60px;height:40px;border:1px solid var(--line);background:var(--bg);border-radius:9px;cursor:pointer;padding:0 8px}
   .pd-read b{font-size:17px;font-weight:800;color:var(--ink);line-height:1}
   .pd-read small{font-size:8px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:2px}
@@ -284,7 +302,7 @@
   .annot-bar .ab.done{background:var(--accent2);border-color:var(--accent2);color:#fff}
   .annot-bar .sep{width:1px;height:24px;background:var(--line);margin:0 2px}
   .btn.sq.on,.pfix-btn.on{background:var(--accent2);border-color:var(--accent2);color:#fff}
-  @media(max-width:560px){.pd-lab{display:none}.pd-read{min-width:50px}.pdock{gap:8px}.pd-btn{min-width:42px;height:38px}.pd-group{gap:6px}.pd-slider{width:66px}}
+  @media(max-width:560px){.pd-lab{display:none}.pd-read{min-width:50px}.pdock{gap:8px}.pd-btn{min-width:42px;height:38px}.pd-group{gap:6px}.pd-slider{width:66px}.metro-badge{width:58px;height:58px}.metro-badge .metro-num{font-size:23px}}
   /* ===================== three-mode shell ===================== */
   #modebar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top) + 9px) 14px 9px;background:color-mix(in srgb,var(--panel) 92%,transparent);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
   .mb-brand{font-family:'Inter',sans-serif;font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px;color:var(--ink);white-space:nowrap}
@@ -458,6 +476,22 @@
     </div>
   </div>
 </div>
+
+<dialog id="setMaker" class="ui">
+  <div class="sm-wrap">
+    <h2>Plan a service</h2>
+    <label class="sm-lbl" for="smDate">Date</label>
+    <input type="date" id="smDate" class="sm-date">
+    <div class="sm-day" id="smDay"></div>
+    <label class="sm-lbl">Service times</label>
+    <div id="smServices"></div>
+    <button class="btn" id="smAddSvc">＋ Add a service</button>
+    <div class="sm-actions">
+      <button class="btn" id="smCancel">Cancel</button>
+      <button class="btn golive" id="smCreate">Create set</button>
+    </div>
+  </div>
+</dialog>
 
 <dialog id="arranger" class="ui">
   <div class="modal-h">Arrangement</div>
@@ -782,9 +816,10 @@ function renderPageHTML(song,leaderIdx,playIdx,capo,mode){
   return '<div class="page"><div class="song-head"><div><div class="song-title">'+esc(song.title)+'</div>'
     +(song.artist?'<div class="song-sub">'+esc(song.artist)+'</div>':'')+metaHtml+'</div>'
     +'<div class="song-headR">'+subHtml
+    +'<button class="metro-badge" title="Visual metronome — tap to start/stop"><span class="metro-num">'+esc(song.time||'4/4')+'</span></button>'
     +'<div class="keybadge"><div class="kb-label">LEADER KEY</div><div class="kb-val">'+esc(KEYS[leaderIdx].n)+'</div></div></div></div>'
     +mapStripHTML(entries,S.full)
-    +'<div class="song">'+body+'</div>'
+    +'<div class="psong-wrap"><div class="song">'+body+'</div></div>'
     +(song.credit?'<div class="credit">'+esc(song.credit)+'</div>':'')+'</div>';
 }
 function wireMapStrip(scope){
@@ -884,30 +919,25 @@ function renderPerform(){
   document.getElementById('pCapo').value=S.capo;
   fitPerform();
   perfDockOnRender();
+  wireMetroBadge();
   attachAnnot();
 }
 function fitPerform(){
   const body=document.querySelector('#performPage .song');if(!body)return;
-  const wide=window.innerWidth>900;const floor=18;let fit=false;
-  /* On a wide screen, try to fit the WHOLE song in two columns on one page —
-     accept only when nothing spills into hidden side-columns (scrollWidth guard). */
-  if(wide){
-    body.style.columnCount=2;
-    for(let sz=30;sz>=floor;sz--){body.style.fontSize=sz+'px';
-      if(body.scrollHeight<=body.clientHeight+1&&body.scrollWidth<=body.clientWidth+1){fit=true;break;}}
-  }
-  /* Otherwise a single column that fits top-to-bottom at a readable size. */
-  if(!fit){
-    body.style.columnCount=1;
-    for(let sz=30;sz>=floor;sz--){body.style.fontSize=sz+'px';
-      if(body.scrollHeight<=body.clientHeight+1){fit=true;break;}}
-  }
-  /* Long song: keep it readable and let it scroll vertically (whole song reachable). */
-  if(!fit){body.style.columnCount=1;body.style.fontSize=Math.max(S.size,20)+'px';body.scrollTop=0;}
+  const wrap=body.parentElement;if(!wrap)return; /* .psong-wrap is the scroll region */
+  const wide=window.innerWidth>=720; /* iPad (incl. mini/portrait) + wide landscape */
+  const floor=18;let fit=false;
+  body.style.columnCount=wide?2:1;
+  /* Shrink to fit the whole song on one screen if we can; the two columns stay. */
+  for(let sz=30;sz>=floor;sz--){body.style.fontSize=sz+'px';
+    if(wrap.scrollHeight<=wrap.clientHeight+1){fit=true;break;}}
+  /* Too long for one screen: keep the column count, stay readable, and let the
+     chart scroll vertically — the rest of the song flows onto a second page below. */
+  if(!fit){body.style.fontSize=Math.max(S.size,wide?18:20)+'px';wrap.scrollTop=0;}
 }
 let pbarTimer;
 function placePbar(){const b=document.getElementById('pbar'),d=document.getElementById('pdock');if(!b||!d)return;const r=d.getBoundingClientRect();b.style.bottom=Math.max(0,Math.round(window.innerHeight-r.top+8))+'px';}
-function showPbar(){const b=document.getElementById('pbar');placePbar();b.classList.remove('hidden');requestAnimationFrame(placePbar);clearTimeout(pbarTimer);pbarTimer=setTimeout(()=>b.classList.add('hidden'),4500);}
+function showPbar(){const b=document.getElementById('pbar');placePbar();b.classList.remove('hidden');requestAnimationFrame(placePbar);clearTimeout(pbarTimer);pbarTimer=setTimeout(()=>b.classList.add('hidden'),6000);}
 function togglePbar(){const b=document.getElementById('pbar');b.classList.contains('hidden')?showPbar():b.classList.add('hidden');}
 function keyOptions(sel){return KEYS.map((k,i)=>'<option value="'+i+'"'+(i===sel?' selected':'')+'>'+k.n+'</option>').join('');}
 
@@ -934,18 +964,21 @@ function meterOf(song){
 function ensureAC(){if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}}if(ac.state==='suspended')ac.resume();return ac;}
 /* lvl: 2 = downbeat, 1 = secondary pulse (compound), 0 = weak beat */
 function clickAt(time,lvl){const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=lvl===2?1560:(lvl===1?1240:1040);const peak=lvl===2?0.5:(lvl===1?0.36:0.26);g.gain.setValueAtTime(0.0001,time);g.gain.exponentialRampToValueAtTime(peak,time+0.001);g.gain.exponentialRampToValueAtTime(0.0001,time+0.05);o.connect(g).connect(ac.destination);o.start(time);o.stop(time+0.06);}
-function flashBeat(lvl,time){const ms=Math.max(0,(time-ac.currentTime)*1000);setTimeout(()=>{if(!metroOn)return;const d=document.getElementById('mBeat');if(!d)return;d.className='pd-beat '+(lvl===2?'accent':(lvl===1?'sec':'tick'));setTimeout(()=>{const dd=document.getElementById('mBeat');if(dd&&metroOn)dd.className='pd-beat';},85);},ms);}
-function metroScheduler(){if(!metroOn||!ac)return;const spb=60/getTempo(S.selId);const mt=meterOf(curSong());while(nextNoteTime<ac.currentTime+SCHED_AHEAD){const pos=beatNo%mt.beats;const lvl=pos===0?2:(mt.sec.has(pos)?1:0);if(!perfPref.silent)clickAt(nextNoteTime,lvl);flashBeat(lvl,nextNoteTime);nextNoteTime+=spb;beatNo++;}metroTimer=setTimeout(metroScheduler,LOOKAHEAD);}
+function flashBeat(lvl,time,beatNum){const ms=Math.max(0,(time-ac.currentTime)*1000);setTimeout(()=>{if(!metroOn)return;const d=document.getElementById('mBeat');if(d){d.className='pd-beat '+(lvl===2?'accent':(lvl===1?'sec':'tick'));setTimeout(()=>{const dd=document.getElementById('mBeat');if(dd&&metroOn)dd.className='pd-beat';},85);}const b=document.querySelector('#performPage .metro-badge');if(b){const n=b.querySelector('.metro-num');if(n)n.textContent=beatNum;b.classList.remove('beat1','beatx');b.classList.add(beatNum===1?'beat1':'beatx');b.classList.add('pulse');setTimeout(()=>{if(b)b.classList.remove('pulse');},90);}},ms);}
+function resetMetroBadge(){const b=document.querySelector('#performPage .metro-badge');if(!b)return;b.classList.remove('beat1','beatx','pulse');const n=b.querySelector('.metro-num');if(n){const s=curSong();n.textContent=(s&&s.time)||'4/4';}}
+function wireMetroBadge(){const b=document.querySelector('#performPage .metro-badge');if(!b)return;b.onclick=toggleMetro;if(!metroOn)resetMetroBadge();}
+function metroScheduler(){if(!metroOn||!ac)return;const spb=60/getTempo(S.selId);const mt=meterOf(curSong());while(nextNoteTime<ac.currentTime+SCHED_AHEAD){const pos=beatNo%mt.beats;const lvl=pos===0?2:(mt.sec.has(pos)?1:0);if(!perfPref.silent)clickAt(nextNoteTime,lvl);flashBeat(lvl,nextNoteTime,pos+1);nextNoteTime+=spb;beatNo++;}metroTimer=setTimeout(metroScheduler,LOOKAHEAD);}
 function startMetro(){if(!ensureAC())return;metroOn=true;beatNo=0;nextNoteTime=ac.currentTime+0.07;const b=document.getElementById('mTog');if(b){b.classList.add('on');b.textContent='⏸';}metroScheduler();}
-function stopMetro(){metroOn=false;if(metroTimer){clearTimeout(metroTimer);metroTimer=null;}const b=document.getElementById('mTog');if(b){b.classList.remove('on');b.textContent='▶';}const d=document.getElementById('mBeat');if(d)d.className='pd-beat';}
+function stopMetro(){metroOn=false;if(metroTimer){clearTimeout(metroTimer);metroTimer=null;}const b=document.getElementById('mTog');if(b){b.classList.remove('on');b.textContent='▶';}const d=document.getElementById('mBeat');if(d)d.className='pd-beat';resetMetroBadge();}
 function toggleMetro(){metroOn?stopMetro():startMetro();}
 let taps=[];
 function tapTempo(){const now=performance.now();taps.push(now);taps=taps.filter(t=>now-t<3000);if(taps.length>=2){let sum=0;for(let i=1;i<taps.length;i++)sum+=taps[i]-taps[i-1];setTempo(S.selId,clampBpm(60000/(sum/(taps.length-1))));syncDock();}}
 /* autoscroll — teleprompter: comfortable size, single column, smooth rAF */
 let scrollOn=false,scrollRAF=null,scrollAcc=0,scrollLast=0;
-function scrollBody(){return document.querySelector('#performPage .song');}
+function scrollBody(){return document.querySelector('#performPage .psong-wrap');}
+function songEl(){return document.querySelector('#performPage .song');}
 function scrollStep(ts){if(!scrollOn)return;const body=scrollBody();if(!body){stopScroll();return;}if(!scrollLast)scrollLast=ts;const dt=Math.min(0.05,(ts-scrollLast)/1000);scrollLast=ts;scrollAcc+=(getTempo(S.selId)/60)*getSpeed(S.selId)*6*dt;body.scrollTop=scrollAcc;if(body.scrollTop+body.clientHeight>=body.scrollHeight-1){stopScroll();return;}scrollRAF=requestAnimationFrame(scrollStep);}
-function startScroll(){const body=scrollBody();if(!body)return;scrollOn=true;scrollLast=0;body.style.columnCount=1;body.style.fontSize=Math.max(S.size,18)+'px';scrollAcc=body.scrollTop;const b=document.getElementById('aTog');if(b)b.classList.add('on');scrollRAF=requestAnimationFrame(scrollStep);}
+function startScroll(){const wrap=scrollBody(),song=songEl();if(!wrap||!song)return;scrollOn=true;scrollLast=0;song.style.columnCount=1;song.style.fontSize=Math.max(S.size,18)+'px';scrollAcc=wrap.scrollTop;const b=document.getElementById('aTog');if(b)b.classList.add('on');scrollRAF=requestAnimationFrame(scrollStep);}
 function stopScroll(restore){scrollOn=false;if(scrollRAF){cancelAnimationFrame(scrollRAF);scrollRAF=null;}const b=document.getElementById('aTog');if(b)b.classList.remove('on');if(restore!==false)fitPerform();}
 function toggleScroll(){scrollOn?stopScroll():startScroll();}
 /* ambient pad — sustained drone synthesised in Web Audio, auto-tuned to the leader (concert) key */
@@ -1216,6 +1249,7 @@ function renderSetlistView(){
   if(!st){h+='<div class="mv-empty">No set selected. Tap ＋ to plan a service.</div>';}
   else{
     h+='<div class="mv-setname">'+esc(st.name)+'</div>';
+    if(st.services&&st.services.length)h+='<div class="mv-setsvc">'+st.services.map(fmtTime).join(' · ')+'</div>';
     if(!songs.length)h+='<div class="mv-empty">This set is empty. Add songs from your library below.</div>';
     else h+='<div class="scard-list">'+songs.map((s,i)=>{const ki=resolveState(s.id).leader;
       return '<div class="setcard'+(s.id===S.selId?' sel':'')+(s.id===setDragId?' set-dragging':'')+'" data-open="'+s.id+'"><span class="sc-drag" data-drag="'+s.id+'" title="Drag to reorder">⠿</span><span class="sc-num">'+(i+1)+'</span>'
@@ -1283,7 +1317,38 @@ function filterLibrary(){
 /* ===================== set ops ===================== */
 function moveInSet(id,dir){const st=activeSetObj();const a=st.songIds;const i=a.indexOf(id);const j=i+dir;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];persist();render();}
 function removeFromSet(id){const st=activeSetObj();st.songIds=st.songIds.filter(x=>x!==id);persist();render();}
-function newSet(){const name=(prompt('Name this set:','Sunday — ')||'').trim();if(!name)return;const st={id:'set'+Date.now(),name:name,songIds:[]};sets.push(st);S.activeSet=st.id;persist();render();openPicker();}
+const SM_DOW=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const SM_MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const SM_MON3=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let smServices=[];
+function smOrdinal(n){const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
+function smPad(n){return String(n).padStart(2,'0');}
+function smNextSunday(){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+((7-d.getDay())%7));return d;}
+function smDateObj(){const v=document.getElementById('smDate').value;if(!v)return null;const p=v.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+function smRenderDay(){const d=smDateObj(),el=document.getElementById('smDay');if(el)el.textContent=d?SM_DOW[d.getDay()]+', '+SM_MON[d.getMonth()]+' '+smOrdinal(d.getDate()):'';}
+function smRenderServices(){
+  const el=document.getElementById('smServices');if(!el)return;
+  el.innerHTML=smServices.length?smServices.map((t,i)=>'<div class="sm-svc"><input type="time" class="sm-time" data-i="'+i+'" value="'+t+'"><button class="ic x sm-rm" data-i="'+i+'" title="Remove this service">✕</button></div>').join(''):'<div class="sm-empty">No set times — add one, or leave it open.</div>';
+  el.querySelectorAll('.sm-time').forEach(inp=>inp.onchange=()=>{smServices[+inp.dataset.i]=inp.value;});
+  el.querySelectorAll('.sm-rm').forEach(b=>b.onclick=()=>{smServices.splice(+b.dataset.i,1);smRenderServices();});
+}
+function openSetMaker(){
+  const d=smNextSunday();
+  document.getElementById('smDate').value=d.getFullYear()+'-'+smPad(d.getMonth()+1)+'-'+smPad(d.getDate());
+  smServices=['09:00','11:00'];smRenderDay();smRenderServices();
+  document.getElementById('setMaker').showModal();
+}
+function newSet(){openSetMaker();}
+function smCreateSet(){
+  const d=smDateObj();if(!d){alert('Pick a date first.');return;}
+  const times=Array.from(document.querySelectorAll('#smServices .sm-time')).map(i=>i.value).filter(Boolean);
+  const name=SM_DOW[d.getDay()]+' — '+d.getDate()+' '+SM_MON3[d.getMonth()]+' '+d.getFullYear();
+  const st={id:'set'+Date.now(),name:name,date:document.getElementById('smDate').value,services:times,songIds:[]};
+  sets.push(st);S.activeSet=st.id;persist();
+  document.getElementById('setMaker').close();
+  render();refreshShell();openPicker();
+}
+function fmtTime(t){if(!t)return '';const p=t.split(':');let h=+p[0];const m=p[1]||'00';const ap=h<12?'AM':'PM';h=h%12||12;return h+':'+m+' '+ap;}
 function delSet(){if(!S.activeSet)return;if(!confirm('Delete this set? Your songs stay in the library.'))return;sets=sets.filter(s=>s.id!==S.activeSet);S.activeSet=null;persist();render();}
 function openPicker(){
   const st=activeSetObj();if(!st)return;
@@ -1379,13 +1444,15 @@ function wire(){
   const pcap=document.getElementById('pCapo');
   pcap.innerHTML=Array.from({length:8},(_,i)=>'<option value="'+i+'">'+(i===0?'capo 0':'capo '+i)+'</option>').join('');
   pcap.onchange=()=>{S.capo=+pcap.value;savePlay();renderPerform();showPbar();};
-  const ps=document.getElementById('perform');let tsx=0,tsy=0,tst=0;
-  ps.addEventListener('touchstart',e=>{tsx=e.changedTouches[0].clientX;tsy=e.changedTouches[0].clientY;tst=Date.now();},{passive:true});
+  const ps=document.getElementById('perform');let tsx=0,tsy=0,tst=0,tCtrl=false;
+  ps.addEventListener('touchstart',e=>{tCtrl=!!(e.target&&e.target.closest&&e.target.closest('.pbar,.pdock,.pfix,.ppos,#annotBar,.annot-canvas,.songmap'));tsx=e.changedTouches[0].clientX;tsy=e.changedTouches[0].clientY;tst=Date.now();},{passive:true});
   ps.addEventListener('touchend',e=>{
+    if(tCtrl)return;
     const dx=e.changedTouches[0].clientX-tsx,dy=e.changedTouches[0].clientY-tsy;
     if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.4){performGo(dx<0?1:-1);}
     else if(Math.abs(dx)<12&&Math.abs(dy)<12&&Date.now()-tst<350){togglePbar();}
   },{passive:true});
+  ['pbar','pdock'].forEach(id=>{const el=document.getElementById(id);if(!el)return;['touchstart','touchend','touchmove'].forEach(ev=>el.addEventListener(ev,e=>e.stopPropagation(),{passive:true}));});
   document.addEventListener('keydown',e=>{
     if(!S.perform)return;
     if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){performGo(1);e.preventDefault();}
@@ -1394,6 +1461,10 @@ function wire(){
   });
   window.addEventListener('resize',()=>{if(S.perform)fitPerform();setTimeout(()=>{attachAnnot();placePbar();},60);});
   document.getElementById('edK').innerHTML=KEYS.map(k=>'<option value="'+k.n+'">'+k.n+'</option>').join('');
+  document.getElementById('smDate').onchange=smRenderDay;
+  document.getElementById('smAddSvc').onclick=()=>{smServices.push('09:00');smRenderServices();};
+  document.getElementById('smCancel').onclick=()=>document.getElementById('setMaker').close();
+  document.getElementById('smCreate').onclick=smCreateSet;
   document.getElementById('edCancel').onclick=()=>document.getElementById('editor').close();
   document.getElementById('edSave').onclick=saveEditor;
   document.getElementById('edDel').onclick=deleteEditor;
