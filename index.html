@@ -221,13 +221,14 @@
   #performPage .psong-wrap{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
   #performPage .song{overflow:visible}
   #performPage .song-head{align-items:center}
-  .metro-badge{display:none;width:156px;height:156px;border-radius:50%;border:4px solid var(--line);background:var(--bg);align-items:center;justify-content:center;cursor:pointer;flex:none;padding:0;-webkit-appearance:none;appearance:none;transition:background .06s,border-color .06s,transform .06s}
+  .metro-badge{display:none;width:156px;height:156px;border-radius:50%;border:4px solid var(--line);background:var(--bg);align-items:center;justify-content:center;cursor:pointer;flex:none;padding:0;-webkit-appearance:none;appearance:none;transform:scale(1);transition:transform 120ms cubic-bezier(0.34,1.56,0.64,1),background 50ms linear,border-color 50ms linear}
   body.perform .metro-badge{display:flex}
   .metro-badge .metro-num{font-family:'Inter',sans-serif;font-weight:800;font-size:60px;color:var(--ink);line-height:1}
-  .metro-badge.beat1{background:#fff;border-color:#fff}
-  .metro-badge.beatx{background:#e0322c;border-color:#e0322c}
-  .metro-badge.beat1 .metro-num,.metro-badge.beatx .metro-num{color:#111}
-  .metro-badge.pulse{transform:scale(1.08)}
+  /* visual metronome — size carries the accent: weak beats shrink to half, accents grow big */
+  .metro-badge.lvl0{transform:scale(0.5);background:#141414;border-color:#333}
+  .metro-badge.lvl1{transform:scale(1.08);background:#1faa52;border-color:#4fe487}
+  .metro-badge.lvl2{transform:scale(1.22);background:#141414;border-color:#ffffff}
+  .metro-badge.lvl0 .metro-num,.metro-badge.lvl1 .metro-num,.metro-badge.lvl2 .metro-num{color:#fff}
   .ppos{position:absolute;top:calc(env(safe-area-inset-top) + 8px);right:calc(env(safe-area-inset-right) + 14px);font-family:'Inter',sans-serif;font-size:13px;font-weight:800;color:var(--ink);background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);padding:7px 13px;border-radius:999px;cursor:pointer;z-index:6}
   .ppos:active{transform:translateY(1px)}
   .jumpdlg{width:min(560px,94vw);max-height:82vh;padding:0;border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.35)}
@@ -969,8 +970,8 @@ function meterOf(song){
 function ensureAC(){if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}}if(ac.state==='suspended')ac.resume();return ac;}
 /* lvl: 2 = downbeat, 1 = secondary pulse (compound), 0 = weak beat */
 function clickAt(time,lvl){const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=lvl===2?1560:(lvl===1?1240:1040);const peak=lvl===2?0.5:(lvl===1?0.36:0.26);g.gain.setValueAtTime(0.0001,time);g.gain.exponentialRampToValueAtTime(peak,time+0.001);g.gain.exponentialRampToValueAtTime(0.0001,time+0.05);o.connect(g).connect(ac.destination);o.start(time);o.stop(time+0.06);}
-function flashBeat(lvl,time,beatNum){const ms=Math.max(0,(time-ac.currentTime)*1000);setTimeout(()=>{if(!metroOn)return;const d=document.getElementById('mBeat');if(d){d.className='pd-beat '+(lvl===2?'accent':(lvl===1?'sec':'tick'));setTimeout(()=>{const dd=document.getElementById('mBeat');if(dd&&metroOn)dd.className='pd-beat';},85);}const b=document.querySelector('#performPage .metro-badge');if(b){const n=b.querySelector('.metro-num');if(n)n.textContent=beatNum;b.classList.remove('beat1','beatx');b.classList.add(beatNum===1?'beat1':'beatx');b.classList.add('pulse');setTimeout(()=>{if(b)b.classList.remove('pulse');},90);}},ms);}
-function resetMetroBadge(){const b=document.querySelector('#performPage .metro-badge');if(!b)return;b.classList.remove('beat1','beatx','pulse');const n=b.querySelector('.metro-num');if(n){const s=curSong();n.textContent=(s&&s.time)||'4/4';}}
+function flashBeat(lvl,time,beatNum){const ms=Math.max(0,(time-ac.currentTime)*1000);setTimeout(()=>{if(!metroOn)return;const d=document.getElementById('mBeat');if(d){d.className='pd-beat '+(lvl===2?'accent':(lvl===1?'sec':'tick'));setTimeout(()=>{const dd=document.getElementById('mBeat');if(dd&&metroOn)dd.className='pd-beat';},85);}const b=document.querySelector('#performPage .metro-badge');if(b){const n=b.querySelector('.metro-num');if(n)n.textContent=beatNum;b.classList.remove('lvl0','lvl1','lvl2');b.classList.add('lvl'+lvl);}},ms);}
+function resetMetroBadge(){const b=document.querySelector('#performPage .metro-badge');if(!b)return;b.classList.remove('lvl0','lvl1','lvl2');const n=b.querySelector('.metro-num');if(n){const s=curSong();n.textContent=(s&&s.time)||'4/4';}}
 function wireMetroBadge(){const b=document.querySelector('#performPage .metro-badge');if(!b)return;b.onclick=toggleMetro;if(!metroOn)resetMetroBadge();}
 function metroScheduler(){if(!metroOn||!ac)return;const spb=60/getTempo(S.selId);const mt=meterOf(curSong());while(nextNoteTime<ac.currentTime+SCHED_AHEAD){const pos=beatNo%mt.beats;const lvl=pos===0?2:(mt.sec.has(pos)?1:0);if(!perfPref.silent)clickAt(nextNoteTime,lvl);flashBeat(lvl,nextNoteTime,pos+1);nextNoteTime+=spb;beatNo++;}metroTimer=setTimeout(metroScheduler,LOOKAHEAD);}
 function startMetro(){if(!ensureAC())return;metroOn=true;beatNo=0;nextNoteTime=ac.currentTime+0.07;const b=document.getElementById('mTog');if(b){b.classList.add('on');b.textContent='⏸';}metroScheduler();}
