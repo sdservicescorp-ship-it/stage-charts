@@ -90,7 +90,7 @@
   body.dark .keybadge{color:#0c1015}
   .kb-label{font-family:'Inter',sans-serif;font-size:8.5px;font-weight:800;letter-spacing:.06em;opacity:.85;margin-bottom:1px;white-space:nowrap}
   .kb-val{font-family:'Inter',sans-serif;font-weight:800;font-size:28px;letter-spacing:-.02em}
-  .keysub{font-family:'Inter',sans-serif;font-size:11px;color:var(--muted);text-align:right;line-height:1.45;max-width:150px}
+  .keysub{font-family:'Inter',sans-serif;font-size:11px;color:var(--muted);text-align:left;line-height:1.45;max-width:240px;margin-top:2px}
   .keysub b{color:var(--accent2)}
   .song{column-count:var(--cols);column-gap:30px;column-fill:balance;font-size:var(--songsize)}
   body.pageMode main>.page .song{flex:1;min-height:0}
@@ -221,8 +221,8 @@
   #performPage .psong-wrap{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
   #performPage .song{overflow:visible}
   #performPage .song-head{align-items:center;padding-bottom:3px;margin-bottom:4px}
-  #performPage .metro-badge{width:48px;height:48px}
-  #performPage .metro-badge .metro-num{font-size:20px}
+  #performPage .metro-badge{position:absolute;top:calc(env(safe-area-inset-top) + 4px);right:calc(env(safe-area-inset-right) + 96px);width:88px;height:88px;z-index:6}
+  #performPage .metro-badge .metro-num{font-size:34px}
   #performPage .songmap{margin:1px 0 4px;padding-bottom:4px}
   #performPage .song-meta{display:none}
   #performPage .smchip .smcirc{width:28px;height:28px;font-size:12px}
@@ -825,8 +825,8 @@ function renderPageHTML(song,leaderIdx,playIdx,capo,mode){
   const metaBits=[];metaBits.push(getTempo(song.id)+' bpm');if(song.time)metaBits.push(esc(song.time));
   const metaHtml=metaBits.length?'<div class="song-meta">'+metaBits.join(' · ')+'</div>':'';
   return '<div class="page"><div class="song-head"><div><div class="song-title">'+esc(song.title)+'</div>'
-    +(song.artist?'<div class="song-sub">'+esc(song.artist)+'</div>':'')+metaHtml+'</div>'
-    +'<div class="song-headR">'+subHtml
+    +(song.artist?'<div class="song-sub">'+esc(song.artist)+'</div>':'')+metaHtml+subHtml+'</div>'
+    +'<div class="song-headR">'
     +'<button class="metro-badge" title="Visual metronome — tap to start/stop"><span class="metro-num">'+esc(song.time||'4/4')+'</span></button>'
     +'<div class="keybadge"><div class="kb-label">LEADER KEY</div><div class="kb-val">'+esc(KEYS[leaderIdx].n)+'</div></div></div></div>'
     +mapStripHTML(entries,S.full)
