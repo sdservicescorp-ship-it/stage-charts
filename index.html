@@ -967,7 +967,7 @@ function cycleLead(){const seq=[0,1,2,4];let i=seq.indexOf(getLead());i=(i+1)%se
 function syncLeadBtn(){const b=document.getElementById('aLeadVal');if(b)b.textContent=getLead();}
 /* metronome — lookahead scheduler for stable timing (Web Audio) */
 let ac=null,metroOn=false,nextNoteTime=0,beatNo=0,metroTimer=null;const LOOKAHEAD=25,SCHED_AHEAD=0.12;
-let metroStopBeat=Infinity;const METRO_BARS=8;
+let metroStopBeat=Infinity,metroStopTimer=null;const METRO_BARS=8;
 let beatQueue=[],visRAF=null,dockLit=false,dockLitT=0;
 /* bar length + accent pattern follow the song's time signature */
 function meterOf(song){
@@ -977,7 +977,7 @@ function meterOf(song){
   if(m){const n=+m[1],d=+m[2];if(n>=1&&n<=16){beats=n;if(d===8&&n%3===0&&n>3){for(let i=3;i<n;i+=3)sec.add(i);}}}
   return {beats,sec};
 }
-function ensureAC(){if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}}if(ac.state==='suspended')ac.resume();return ac;}
+function ensureAC(){try{if(!ac||ac.state==='closed'){ac=new (window.AudioContext||window.webkitAudioContext)();}}catch(e){return null;}if(ac.state==='suspended'||ac.state==='interrupted'){try{ac.resume();}catch(e){}}return ac;}
 /* lvl: 2 = downbeat, 1 = secondary pulse (compound), 0 = weak beat */
 function clickAt(time,lvl){const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=lvl===2?1560:(lvl===1?1240:1040);const peak=lvl===2?0.5:(lvl===1?0.36:0.26);g.gain.setValueAtTime(0.0001,time);g.gain.exponentialRampToValueAtTime(peak,time+0.001);g.gain.exponentialRampToValueAtTime(0.0001,time+0.05);o.connect(g).connect(ac.destination);o.start(time);o.stop(time+0.06);}
 function flashBeat(lvl,time,beatNum){beatQueue.push({time:time,lvl:lvl,n:beatNum});}
@@ -998,9 +998,10 @@ function visTick(){
 }
 function resetMetroBadge(){const b=document.querySelector('#performPage .metro-badge');if(!b)return;b.classList.remove('lvl0','lvl1','lvl2','run');const n=b.querySelector('.metro-num');if(n){const s=curSong();n.textContent=(s&&s.time)||'4/4';}}
 function wireMetroBadge(){const b=document.querySelector('#performPage .metro-badge');if(!b)return;b.onclick=toggleMetro;if(!metroOn)resetMetroBadge();}
-function metroScheduler(){if(!metroOn||!ac)return;const spb=60/getTempo(S.selId);const mt=meterOf(curSong());while(nextNoteTime<ac.currentTime+SCHED_AHEAD&&beatNo<metroStopBeat){const pos=beatNo%mt.beats;const lvl=pos===0?2:(mt.sec.has(pos)?1:0);if(!perfPref.silent)clickAt(nextNoteTime,lvl);flashBeat(lvl,nextNoteTime,pos+1);nextNoteTime+=spb;beatNo++;}if(beatNo>=metroStopBeat&&ac.currentTime>=nextNoteTime){stopMetro();return;}metroTimer=setTimeout(metroScheduler,LOOKAHEAD);}
-function startMetro(autoStop){if(!ensureAC())return;metroOn=true;beatNo=0;nextNoteTime=ac.currentTime+0.07;beatQueue=[];dockLit=false;metroStopBeat=(autoStop===false)?Infinity:METRO_BARS*meterOf(curSong()).beats;const b=document.getElementById('mTog');if(b){b.classList.add('on');b.textContent='⏸';}const mb=document.querySelector('#performPage .metro-badge');if(mb)mb.classList.add('run');metroScheduler();if(!visRAF)visRAF=requestAnimationFrame(visTick);}
-function stopMetro(){metroOn=false;if(metroTimer){clearTimeout(metroTimer);metroTimer=null;}if(visRAF){cancelAnimationFrame(visRAF);visRAF=null;}beatQueue=[];dockLit=false;const b=document.getElementById('mTog');if(b){b.classList.remove('on');b.textContent='▶';}const d=document.getElementById('mBeat');if(d)d.className='pd-beat';resetMetroBadge();}
+function metroScheduler(){if(!metroOn||!ac)return;const spb=60/getTempo(S.selId);const mt=meterOf(curSong());while(nextNoteTime<ac.currentTime+SCHED_AHEAD&&beatNo<metroStopBeat){const pos=beatNo%mt.beats;const lvl=pos===0?2:(mt.sec.has(pos)?1:0);if(!perfPref.silent)clickAt(nextNoteTime,lvl);flashBeat(lvl,nextNoteTime,pos+1);nextNoteTime+=spb;beatNo++;}if(beatNo>=metroStopBeat)return;metroTimer=setTimeout(metroScheduler,LOOKAHEAD);}
+function startMetro(autoStop){if(metroOn)return;let ctx=ensureAC();if(!ctx)return;if(ctx.state==='interrupted'){try{ac=new (window.AudioContext||window.webkitAudioContext)();ctx=ac;}catch(e){}}if(ctx.state==='running'){beginMetro(autoStop);return;}try{ctx.resume().then(function(){beginMetro(autoStop);},function(){beginMetro(autoStop);});}catch(e){beginMetro(autoStop);}}
+function beginMetro(autoStop){if(metroOn||!ac)return;metroOn=true;beatNo=0;nextNoteTime=ac.currentTime+0.1;beatQueue=[];dockLit=false;metroStopBeat=(autoStop===false)?Infinity:METRO_BARS*meterOf(curSong()).beats;if(metroStopTimer){clearTimeout(metroStopTimer);metroStopTimer=null;}if(metroStopBeat!==Infinity){const spb=60/getTempo(S.selId);metroStopTimer=setTimeout(function(){if(metroOn)stopMetro();},(0.1+metroStopBeat*spb)*1000+80);}const b=document.getElementById('mTog');if(b){b.classList.add('on');b.textContent='⏸';}const mb=document.querySelector('#performPage .metro-badge');if(mb)mb.classList.add('run');metroScheduler();if(!visRAF)visRAF=requestAnimationFrame(visTick);}
+function stopMetro(){metroOn=false;if(metroTimer){clearTimeout(metroTimer);metroTimer=null;}if(metroStopTimer){clearTimeout(metroStopTimer);metroStopTimer=null;}if(visRAF){cancelAnimationFrame(visRAF);visRAF=null;}beatQueue=[];dockLit=false;const b=document.getElementById('mTog');if(b){b.classList.remove('on');b.textContent='▶';}const d=document.getElementById('mBeat');if(d)d.className='pd-beat';resetMetroBadge();}
 function toggleMetro(){metroOn?stopMetro():startMetro();}
 let taps=[];
 function tapTempo(){const now=performance.now();taps.push(now);taps=taps.filter(t=>now-t<3000);if(taps.length>=2){let sum=0;for(let i=1;i<taps.length;i++)sum+=taps[i]-taps[i-1];setTempo(S.selId,clampBpm(60000/(sum/(taps.length-1))));syncDock();}}
