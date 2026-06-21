@@ -967,6 +967,7 @@ function cycleLead(){const seq=[0,1,2,4];let i=seq.indexOf(getLead());i=(i+1)%se
 function syncLeadBtn(){const b=document.getElementById('aLeadVal');if(b)b.textContent=getLead();}
 /* metronome — lookahead scheduler for stable timing (Web Audio) */
 let ac=null,metroOn=false,nextNoteTime=0,beatNo=0,metroTimer=null;const LOOKAHEAD=25,SCHED_AHEAD=0.12;
+let metroStopBeat=Infinity;const METRO_BARS=8;
 let beatQueue=[],visRAF=null,dockLit=false,dockLitT=0;
 /* bar length + accent pattern follow the song's time signature */
 function meterOf(song){
@@ -997,8 +998,8 @@ function visTick(){
 }
 function resetMetroBadge(){const b=document.querySelector('#performPage .metro-badge');if(!b)return;b.classList.remove('lvl0','lvl1','lvl2','run');const n=b.querySelector('.metro-num');if(n){const s=curSong();n.textContent=(s&&s.time)||'4/4';}}
 function wireMetroBadge(){const b=document.querySelector('#performPage .metro-badge');if(!b)return;b.onclick=toggleMetro;if(!metroOn)resetMetroBadge();}
-function metroScheduler(){if(!metroOn||!ac)return;const spb=60/getTempo(S.selId);const mt=meterOf(curSong());while(nextNoteTime<ac.currentTime+SCHED_AHEAD){const pos=beatNo%mt.beats;const lvl=pos===0?2:(mt.sec.has(pos)?1:0);if(!perfPref.silent)clickAt(nextNoteTime,lvl);flashBeat(lvl,nextNoteTime,pos+1);nextNoteTime+=spb;beatNo++;}metroTimer=setTimeout(metroScheduler,LOOKAHEAD);}
-function startMetro(){if(!ensureAC())return;metroOn=true;beatNo=0;nextNoteTime=ac.currentTime+0.07;beatQueue=[];dockLit=false;const b=document.getElementById('mTog');if(b){b.classList.add('on');b.textContent='⏸';}const mb=document.querySelector('#performPage .metro-badge');if(mb)mb.classList.add('run');metroScheduler();if(!visRAF)visRAF=requestAnimationFrame(visTick);}
+function metroScheduler(){if(!metroOn||!ac)return;const spb=60/getTempo(S.selId);const mt=meterOf(curSong());while(nextNoteTime<ac.currentTime+SCHED_AHEAD&&beatNo<metroStopBeat){const pos=beatNo%mt.beats;const lvl=pos===0?2:(mt.sec.has(pos)?1:0);if(!perfPref.silent)clickAt(nextNoteTime,lvl);flashBeat(lvl,nextNoteTime,pos+1);nextNoteTime+=spb;beatNo++;}if(beatNo>=metroStopBeat&&ac.currentTime>=nextNoteTime){stopMetro();return;}metroTimer=setTimeout(metroScheduler,LOOKAHEAD);}
+function startMetro(autoStop){if(!ensureAC())return;metroOn=true;beatNo=0;nextNoteTime=ac.currentTime+0.07;beatQueue=[];dockLit=false;metroStopBeat=(autoStop===false)?Infinity:METRO_BARS*meterOf(curSong()).beats;const b=document.getElementById('mTog');if(b){b.classList.add('on');b.textContent='⏸';}const mb=document.querySelector('#performPage .metro-badge');if(mb)mb.classList.add('run');metroScheduler();if(!visRAF)visRAF=requestAnimationFrame(visTick);}
 function stopMetro(){metroOn=false;if(metroTimer){clearTimeout(metroTimer);metroTimer=null;}if(visRAF){cancelAnimationFrame(visRAF);visRAF=null;}beatQueue=[];dockLit=false;const b=document.getElementById('mTog');if(b){b.classList.remove('on');b.textContent='▶';}const d=document.getElementById('mBeat');if(d)d.className='pd-beat';resetMetroBadge();}
 function toggleMetro(){metroOn?stopMetro():startMetro();}
 let taps=[];
@@ -1013,7 +1014,7 @@ function scrollStep(ts){if(!scrollOn)return;const body=scrollBody();if(!body){st
   if(!scrollLast)scrollLast=ts;const dt=Math.min(0.05,(ts-scrollLast)/1000);scrollLast=ts;scrollAcc+=(getTempo(S.selId)/60)*getSpeed(S.selId)*6*dt;body.scrollTop=scrollAcc;if(body.scrollTop+body.clientHeight>=body.scrollHeight-1){stopScroll();return;}scrollRAF=requestAnimationFrame(scrollStep);}
 function startScroll(){const wrap=scrollBody(),song=songEl();if(!wrap||!song)return;scrollOn=true;scrollLast=0;song.style.columnCount=1;song.style.fontSize=Math.max(S.size,18)+'px';scrollAcc=wrap.scrollTop;
   /* lock the scroll to the metronome: start it if needed, then wait the lead-in bars */
-  scrollStartedMetro=false;if(!metroOn){startMetro();scrollStartedMetro=true;}
+  scrollStartedMetro=false;if(!metroOn){startMetro(false);scrollStartedMetro=true;}
   const mt=meterOf(curSong());const spb=60/getTempo(S.selId);
   scrollStartAt=((ac?ac.currentTime:0)+0.07)+getLead()*mt.beats*spb;
   const b=document.getElementById('aTog');if(b)b.classList.add('on');scrollRAF=requestAnimationFrame(scrollStep);}
