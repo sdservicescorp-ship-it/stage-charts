@@ -216,9 +216,13 @@
   /* perform (full-screen) */
   .perform-stage{position:fixed;inset:0;z-index:100;background:var(--bg);display:none;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
   body.perform .perform-stage{display:flex}
+  .perform-stage{touch-action:manipulation}
+  body.perform #performPage{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  #performPage .psong-wrap{overscroll-behavior:contain}
+  body.dark{color-scheme:dark}
   body.perform>header,body.perform .wrap{display:none!important}
   #performPage{flex:1;min-height:0;display:flex}
-  #performPage .page{flex:1;width:auto;max-width:none;margin:0;border:none;border-radius:0;box-shadow:none;background:var(--bg);padding:calc(env(safe-area-inset-top) + 38px) 26px 12px;display:flex;flex-direction:column;overflow:hidden}
+  #performPage .page{flex:1;width:auto;max-width:none;margin:0;border:none;border-radius:0;box-shadow:none;background:var(--bg);padding:calc(env(safe-area-inset-top) + 46px) 26px 12px;display:flex;flex-direction:column;overflow:hidden}
   #performPage .psong-wrap{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
   #performPage .song{overflow:visible}
   #performPage .song-head{align-items:center;padding-bottom:3px;margin-bottom:4px}
@@ -229,6 +233,7 @@
     #performPage .metro-badge .metro-num{font-size:34px}
   }
   #performPage .songmap{margin:1px 0 4px;padding-bottom:4px}
+  #performPage .credit{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:6px;padding-top:4px}   /* on stage the credit is one clipped line; the reader and print keep the full text */
   #performPage .song-meta{display:none}
   #performPage .smchip .smcirc{width:28px;height:28px;font-size:12px}
   #performPage .sm-flow{padding-top:2px;gap:9px 14px}
@@ -280,6 +285,9 @@
   .pd-btn.on{background:var(--accent2);border-color:var(--accent2);color:#fff}
   .pd-btn.scroll.on{background:var(--accent);border-color:var(--accent)}
   .pd-btn.pad.on{background:#7c3f5c;border-color:#7c3f5c;color:#fff}
+  .pd-btn.met{color:var(--accent2);border-color:color-mix(in srgb,var(--accent2) 45%,var(--line))}
+  .pd-btn.scroll{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+  .pd-btn.pad{color:#7c3f5c;border-color:color-mix(in srgb,#7c3f5c 45%,var(--line))} body.dark .pd-btn.pad{color:#c98ab0}
   body.dark .pd-btn.on{color:#0c1015}
   .pd-tempo{display:flex;align-items:center;gap:4px}
   .pd-step{appearance:none;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:34px;height:40px;border-radius:9px;font-size:20px;font-weight:700;cursor:pointer;line-height:1}
@@ -328,6 +336,46 @@
   .annot-bar .sep{width:1px;height:24px;background:var(--line);margin:0 2px}
   .btn.sq.on,.pfix-btn.on{background:var(--accent2);border-color:var(--accent2);color:#fff}
   @media(max-width:560px){.pd-lab{display:none}.pd-read{min-width:50px}.pdock{gap:8px}.pd-btn{min-width:42px;height:38px}.pd-group{gap:6px}.pd-slider{width:66px}.metro-badge{width:104px;height:104px}.metro-badge .metro-num{font-size:42px}}
+  /* ---- phone & short-screen performance layout ----
+     Before: the dock wrapped into three rows (149 px) and the song map into three (109 px); on an iPhone in
+     landscape the chart was left 81 px tall. Now the dock is ONE row of the three transport buttons plus the
+     beat row — tempo, scroll speed, count-in and pad volume fold behind ⋯ — and the map is one swipeable row. */
+  .pd-adv{display:contents}
+  .pd-more{display:none}
+  @media (max-width:560px),(max-height:500px){
+    .pdock{flex-wrap:nowrap;gap:6px;padding:5px 10px calc(env(safe-area-inset-bottom) + 5px);overflow:hidden}
+    .pdock .pd-adv{display:none}
+    .pdock.open{flex-wrap:wrap}
+    .pdock.open .pd-adv{display:contents}
+    .pd-more{display:inline-flex}
+    .pd-lab,.pd-meter{display:none}
+    .pdock.open .pd-meter{display:inline}
+    .pd-btn{min-width:40px;height:38px}
+    .pd-group{gap:6px}
+    .pd-beats{gap:4px}.pd-beats.many{gap:2px}
+    .pd-beats.many .pd-beat{width:calc(var(--blink-size,14px) * .55);height:calc(var(--blink-size,14px) * .55)}
+    #performPage .page{padding-left:14px;padding-right:14px}
+    #performPage .songmap{margin:0 0 3px;padding-bottom:3px}
+    #performPage .sm-flow{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:3px 2px 3px 0}
+    #performPage .sm-flow::-webkit-scrollbar{display:none}
+    .pbar{flex-wrap:wrap;row-gap:8px;padding:10px 10px}
+  }
+  @media (max-height:500px){
+    #performPage .song-head{padding-bottom:1px;margin-bottom:2px}
+    #performPage .song-title{font-size:18px}
+    #performPage .song-sub{display:none}   /* artist line: not worth a row when height is the scarce thing */
+    #performPage .metro-badge{width:72px;height:72px}
+    #performPage .metro-badge .metro-num{font-size:28px}
+  }
+  /* iPad widths: the CLICK / SCROLL / PAD captions are what push a 12-dot beat row onto a second line */
+  @media (max-width:1100px){.pd-lab{display:none}}
+  /* touch targets: the map chips keep their look but gain a ≥38 px hit area; overlay buttons reach 36 px */
+  .smchip{padding:5px}
+  .sm-flow{gap:4px 6px}
+  #performPage .sm-flow{gap:0 4px}
+  .pfix-btn,.ppos{min-height:36px;display:inline-flex;align-items:center}
+  /* blur over a scrolling chart is expensive on iPad GPUs: the perform overlays use a solid tint instead */
+  .pfix-btn,.ppos,.pbar{backdrop-filter:none;-webkit-backdrop-filter:none;background:color-mix(in srgb,var(--panel) 96%,transparent)}
   /* ===================== three-mode shell ===================== */
   #modebar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top) + 9px) 14px 9px;background:color-mix(in srgb,var(--panel) 92%,transparent);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
   .mb-brand{font-family:'Inter',sans-serif;font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px;color:var(--ink);white-space:nowrap}
@@ -372,11 +420,15 @@
   .mv-actions .golive{margin-left:auto;background:var(--accent2);border-color:var(--accent2);color:#fff;font-weight:800;padding:12px 22px;font-size:15px;border-radius:11px}
   body.dark .mv-actions .golive{color:#0c1015}
   .mv-empty{padding:34px;text-align:center;color:var(--muted)}
+  .mv-build{margin-left:auto;font-family:'Inter',sans-serif;font-size:11px;color:var(--muted);letter-spacing:.03em}
   .mv-setname{font-family:'Inter',sans-serif;font-weight:700;color:var(--muted);margin-bottom:10px;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
   .mv-setpick{display:flex;gap:6px;align-items:center}
   .mv-setpick select{appearance:none;border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:8px 10px;font-family:'Inter',sans-serif;color:var(--ink);max-width:200px}
   .mv-setpick button{appearance:none;border:1px solid var(--line);background:var(--bg);border-radius:9px;width:36px;height:36px;cursor:pointer;color:var(--ink)}
 
+  /* toast — the only way the app talks back; never blocks, never a modal */
+  #toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 14px);transform:translate(-50%,-140%);z-index:300;max-width:min(92vw,560px);padding:11px 16px;border-radius:12px;background:var(--ink);color:var(--bg);font-family:'Inter',sans-serif;font-size:14px;font-weight:600;box-shadow:0 8px 28px rgba(0,0,0,.28);opacity:0;transition:transform .25s,opacity .25s;pointer-events:none;text-align:center}
+  #toast.show{transform:translate(-50%,0);opacity:1;pointer-events:auto;cursor:pointer}
   /* print */
   #printRoot{display:none}
   @media print{
@@ -462,6 +514,7 @@
   <div class="pfix" id="pfix">
     <button class="pfix-btn" id="pNum" title="Chords / Nashville numbers">123</button>
     <button class="pfix-btn" id="pDraw" title="Annotate">✏️</button>
+    <button class="pfix-btn" id="pTheme" title="Light / dark">◐</button>
     <button class="pfix-btn exit" id="pExitFixed" title="Exit full screen">✕&nbsp;Exit</button>
   </div>
   <div id="performPage"></div>
@@ -469,37 +522,39 @@
     <button class="pbtn" id="pPrev">‹ Prev</button>
     <div class="pkey"><span class="pk-lab">KEY</span><button class="pbtn" id="pKeyDown" title="Key down a half-step">▼</button><span id="pKey">G</span><button class="pbtn" id="pKeyUp" title="Key up a half-step">▲</button></div>
     <select class="pbtn" id="pCapo" title="Capo"></select>
+    <button class="pbtn" id="pSzDown" title="Smaller chart text">A−</button><button class="pbtn" id="pSzUp" title="Bigger chart text">A+</button>
     <button class="pbtn" id="pNext">Next ›</button>
   </div>
   <div class="pdock" id="pdock">
     <div class="pd-group">
       <span class="pd-lab">Click</span>
       <button class="pd-btn met" id="mTog" title="Metronome — start/stop">▶</button>
-      <button class="pd-btn" id="mSilent" title="Click sound — tap for blinker-only">🔊</button>
+      <div class="pd-adv"><button class="pd-btn" id="mSilent" title="Click sound — tap for blinker-only">🔊</button>
       <div class="pd-tempo">
         <button class="pd-step" id="mDown" title="Slower">–</button>
         <button class="pd-read" id="mBpm" title="Tap tempo"><b id="mBpmVal">90</b><small>bpm·tap</small></button>
         <button class="pd-step" id="mUp" title="Faster">+</button>
-      </div>
+      </div></div>
       <span class="pd-beats" id="mBeat"></span>
       <span class="pd-meter" id="mMeter">4/4</span>
     </div>
     <div class="pd-group">
       <span class="pd-lab">Scroll</span>
-      <div class="pd-tempo">
+      <div class="pd-adv"><div class="pd-tempo">
         <button class="pd-step" id="aDown" title="Slower">–</button>
         <button class="pd-read" id="aSpd"><b id="aSpdVal">3</b><small>speed</small></button>
         <button class="pd-step" id="aUp" title="Faster">+</button>
-      </div>
+      </div></div>
       <button class="pd-btn scroll" id="aTog" title="Autoscroll — start/stop">⇊</button>
-      <button class="pd-read" id="aLead" title="Count-in bars before autoscroll starts"><b id="aLeadVal">2</b><small>bars</small></button>
+      <div class="pd-adv"><button class="pd-read" id="aLead" title="Count-in bars before autoscroll starts"><b id="aLeadVal">2</b><small>bars</small></button></div>
     </div>
     <div class="pd-group">
       <span class="pd-lab">Pad</span>
-      <button class="pd-btn pad" id="padTog" title="Ambient pad — follows the leader key">▶</button>
-      <input type="range" class="pd-slider" id="padVolRange" min="1" max="9" step="1" value="5" title="Pad volume" aria-label="Pad volume">
-      <span class="pd-meter" id="padKey">G</span>
+      <button class="pd-btn pad" id="padTog" title="Ambient pad — follows the leader key">∿</button>
+      <div class="pd-adv"><input type="range" class="pd-slider" id="padVolRange" min="1" max="9" step="1" value="5" title="Pad volume" aria-label="Pad volume">
+      <span class="pd-meter" id="padKey">G</span></div>
     </div>
+    <button class="pd-btn pd-more" id="pdMore" title="Tempo, scroll speed, count-in and pad volume">⋯</button>
   </div>
 </div>
 
@@ -590,6 +645,7 @@
   <div id="jumpList" class="jump-list"></div>
 </dialog>
 <div id="printRoot"></div>
+<div id="toast" class="ui" role="status"></div>
 
 <dialog id="editor" class="ui">
   <div class="modal-h" id="edTitle">Add song</div>
@@ -682,10 +738,40 @@ function parseLine(line){
   return units;
 }
 
+/* ===================== resilience: never a blank screen ===================== */
+let toastTimer=null,toastAction=null;
+function toast(msg,ms,onTap){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;toastAction=onTap||null;t.onclick=()=>{hideToast();if(toastAction)toastAction();};t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(hideToast,ms||3000);}
+function hideToast(){const t=document.getElementById('toast');if(t)t.classList.remove('show');}
+let lastErr=null;
+function noteErr(e){try{lastErr=String(e&&e.message||e).slice(0,300);const arr=JSON.parse(localStorage.getItem('stagecharts_err')||'[]');arr.push({t:Date.now(),m:lastErr});while(arr.length>5)arr.shift();localStorage.setItem('stagecharts_err',JSON.stringify(arr));}catch(x){}}
+/* an uncaught error used to leave the screen half-drawn with dead buttons — the "crash". Now it is logged,
+   announced, and one tap puts the app back on its feet without a reload (which would lose the audio session). */
+window.addEventListener('error',ev=>{noteErr(ev.error||ev.message);toast('Something went wrong — tap here to recover',8000,recoverUI);});
+window.addEventListener('unhandledrejection',ev=>{noteErr(ev.reason);});
+function recoverUI(){try{stopMetro();stopPad();if(scrollOn)stopScroll(false);}catch(e){}
+  try{if(S.perform){S.perform=false;document.body.classList.remove('perform');keepAwake(false);}
+    const list=navList();if(!byId(S.selId)&&list[0])loadSongState(list[0].id);render();switchView(S.activeSet?'setlist':'library');}
+  catch(e){noteErr(e);location.reload();}}
+/* keep the screen on while performing (Safari 16.4+); re-acquired whenever the app comes back to the front */
+let wakeLock=null;
+function keepAwake(on){try{if(on){if(!('wakeLock' in navigator))return;if(wakeLock&&!wakeLock.released)return;navigator.wakeLock.request('screen').then(w=>{wakeLock=w;}).catch(()=>{});}else if(wakeLock){const w=wakeLock;wakeLock=null;w.release().catch(()=>{});}}catch(e){}}
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){persistNow();acSuspect=true;if(metroOn)stopMetro();if(scrollOn)stopScroll(false);return;}
+  if(S.perform)keepAwake(true);
+  if(ac&&padOn)clockAlive(ac,150).then(ok=>{if(!ok&&padOn)rebuildAC();});
+});
+/* device-local reading preferences: chart size, columns, theme, performance font — these used to reset on
+   every launch (18 px, two columns, light) */
+const UI_DEF={size:18,cols:2,dark:null,psize:null};let ui=Object.assign({},UI_DEF);
+function loadUI(){try{const s=localStorage.getItem('stagecharts_ui');if(s)ui=Object.assign({},UI_DEF,JSON.parse(s)||{});}catch(e){}}
+function saveUI(){try{localStorage.setItem('stagecharts_ui',JSON.stringify(ui));}catch(e){}}
+function applyTheme(){const sys=!!(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);S.dark=(ui.dark==null)?sys:!!ui.dark;document.body.classList.toggle('dark',S.dark);}
+try{const mq=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)');if(mq&&mq.addEventListener)mq.addEventListener('change',()=>{if(ui.dark==null)applyTheme();});}catch(e){}
+
 /* ===================== state ===================== */
 const S={mode:'names',targetIdx:null,leaderIdx:null,capo:0,cols:2,size:18,page:false,dark:false,selId:null,activeSet:null,setIdx:0,perform:false,search:'',full:false,draw:false};
 let library=[],sets=[],overrides={},arrangements={},seedVersion=0;
-const SEED_VERSION=31;   /* bump whenever a SEED song is corrected/added so installed apps refresh it */
+const SEED_VERSION=32;   /* bump whenever a SEED song is corrected/added so installed apps refresh it */
 const store={
   save(){try{localStorage.setItem('stagecharts_v1',JSON.stringify({library,sets,overrides,arrangements,seedVersion}));}catch(e){}},
   load(){try{const s=localStorage.getItem('stagecharts_v1');if(s){const d=JSON.parse(s);return Array.isArray(d)?{library:d,sets:[],overrides:{},arrangements:{},seedVersion:0}:{library:d.library||[],sets:d.sets||[],overrides:d.overrides||{},arrangements:d.arrangements||{},seedVersion:d.seedVersion||0};}}catch(e){}return null;}
@@ -710,7 +796,9 @@ function mergeSeed(){
     });
   });
 }
-function persist(){store.save();}
+let persistT=null;
+function persist(){clearTimeout(persistT);persistT=setTimeout(persistNow,150);}   /* coalesced: a key tap no longer serialises the whole library on the main thread */
+function persistNow(){clearTimeout(persistT);persistT=null;store.save();}
 /* ---- chord display style (device-local preference) ---- */
 const STYLE_DEFAULTS={scale:1,supSize:0.70,supWeight:700,bassSize:0.68,bassWeight:700,bassOpacity:0.72,bassColor:'auto',blinkColor:'amber',blinkSize:14};
 const BLINK_COLORS={amber:'#e07a3c',teal:'#1f9e94',red:'#e23b2e',green:'#27ae60',blue:'#3b82f6',violet:'#8b5cf6',white:'#f4f4f5'};
@@ -886,6 +974,7 @@ function render(){
   if(S.targetIdx===null||S.leaderIdx===null)loadSongState(song.id);
   document.getElementById('keySel').value=S.targetIdx;
   document.getElementById('capoSel').value=S.capo;
+  releaseAnnot(stage);
   stage.innerHTML=renderPageHTML(song,S.leaderIdx,S.targetIdx,S.capo,S.mode);
   wireMapStrip(stage);
   if(S.page)fitPage();
@@ -908,18 +997,18 @@ function renderSetbar(){
   const bar=document.getElementById('setbar');
   if(!S.activeSet){document.body.classList.remove('hasSet');return;}
   document.body.classList.add('hasSet');
-  const songs=setSongs();let idx=songs.findIndex(s=>s.id===S.selId);if(idx<0)idx=0;S.setIdx=idx;
+  const songs=setSongs();const idx=songs.findIndex(s=>s.id===S.selId);S.setIdx=Math.max(0,idx);   /* a song outside the set highlights nothing */
   bar.innerHTML='<button class="set-ctrl" id="prevSong">‹</button><div class="chips">'
-    +songs.map((s,i)=>'<span class="chip'+(i===idx?' cur':'')+'" data-i="'+i+'">'+(i+1)+'. '+esc(s.title)+'</span>').join('')
+    +songs.map((s,i)=>'<span class="chip'+(idx>=0&&i===idx?' cur':'')+'" data-i="'+i+'">'+(i+1)+'. '+esc(s.title)+'</span>').join('')
     +'</div><button class="set-ctrl" id="nextSong">›</button>';
   bar.querySelectorAll('.chip').forEach(c=>c.onclick=()=>gotoSet(+c.dataset.i));
-  document.getElementById('prevSong').onclick=()=>gotoSet(idx-1);
-  document.getElementById('nextSong').onclick=()=>gotoSet(idx+1);
+  document.getElementById('prevSong').onclick=()=>gotoSet(idx<0?0:idx-1);
+  document.getElementById('nextSong').onclick=()=>gotoSet(idx<0?0:idx+1);
 }
 function gotoSet(i){const songs=setSongs();if(i<0||i>=songs.length)return;openSong(songs[i].id);}
 function readOv(id){const st=activeSetObj();return (st&&st.keys&&st.keys[id])?st.keys[id]:overrides[id];}
 function resolveState(id){
-  const s=byId(id);const base=keyIdx(s.key);const ov=readOv(id);
+  const s=byId(id);if(!s)return {leader:7,play:7,capo:0};const base=keyIdx(s.key);const ov=readOv(id);
   if(!ov)return {leader:base,play:base,capo:0};
   const leader=(ov.leader!=null)?ov.leader:(ov.targetIdx!=null?ov.targetIdx:base);
   const play=(ov.play!=null)?ov.play:(ov.targetIdx!=null?ov.targetIdx:leader);
@@ -934,7 +1023,7 @@ function writeOv(id,leader,play,capo){
   else{if(isDef)delete overrides[id];else overrides[id]=val;}
   persist();
 }
-function loadSongState(id){S.selId=id;const r=resolveState(id);S.leaderIdx=r.leader;S.targetIdx=r.play;S.capo=r.capo;}
+function loadSongState(id){if(!byId(id)){const l=navList();id=l[0]?l[0].id:(library[0]?library[0].id:null);if(!id)return;}S.selId=id;const r=resolveState(id);S.leaderIdx=r.leader;S.targetIdx=r.play;S.capo=r.capo;}
 function savePlay(){writeOv(S.selId,S.leaderIdx,S.targetIdx,S.capo);}                 // top controls: change your reading, keep leader anchor
 function setLeaderKey(id,idx){const r=resolveState(id);writeOv(id,idx,idx,0);if(id===S.selId)loadSongState(id);rerender();}  // sidebar: anchor + rebase reading
 function rerender(){if(S.perform)renderPerform();else render();}
@@ -946,18 +1035,24 @@ function enterPerform(){
   if(!library.length)return;
   S.perform=true;document.body.classList.add('perform');
   try{if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});}catch(e){}
-  renderPerform();showPbar();
+  renderPerform();showPbar();keepAwake(true);
 }
 function exitPerform(){
-  S.perform=false;document.body.classList.remove('perform');
+  S.perform=false;document.body.classList.remove('perform');keepAwake(false);
   perfTransportReset();
   try{if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(()=>{});}catch(e){}
   render();
 }
+function perfPage(dir){const w=document.querySelector('#performPage .psong-wrap');if(!w)return false;const max=w.scrollHeight-w.clientHeight;if(max<=2)return false;
+  if(dir>0&&w.scrollTop>=max-2)return false;if(dir<0&&w.scrollTop<=2)return false;
+  w.scrollTo({top:Math.max(0,Math.min(max,w.scrollTop+dir*(w.clientHeight-40))),behavior:'smooth'});return true;}
 function performGo(dir){const list=navList();const i=list.findIndex(s=>s.id===S.selId)+dir;if(i<0||i>=list.length)return;openSong(list[i].id);showPbar();}
+let lastPerfId=null;
 function renderPerform(){
   const song=curSong();if(!song)return;
   if(S.targetIdx===null||S.leaderIdx===null)loadSongState(song.id);
+  const prevWrap=document.querySelector('#performPage .psong-wrap');const keepScroll=(lastPerfId===song.id&&prevWrap)?prevWrap.scrollTop:0;lastPerfId=song.id;
+  releaseAnnot(document.getElementById('performPage'));
   document.getElementById('performPage').innerHTML=renderPageHTML(song,S.leaderIdx,S.targetIdx,S.capo,S.mode);
   wireMapStrip(document.getElementById('performPage'));
   const list=navList();const i=list.findIndex(s=>s.id===S.selId);
@@ -966,23 +1061,28 @@ function renderPerform(){
   const pn=document.getElementById('pNum');if(pn)pn.textContent=(S.mode==='numbers')?'ABC':'123';
   document.getElementById('pCapo').value=S.capo;
   fitPerform();
+  if(keepScroll){const w=document.querySelector('#performPage .psong-wrap');if(w)w.scrollTop=keepScroll;}   /* a key or capo tap must not lose your place */
   perfDockOnRender();
   wireMetroBadge();
   attachAnnot();
 }
+function perfWide(){return window.innerWidth>=720;} /* iPad (incl. mini/portrait) + wide landscape */
+function perfFloor(){return ui.psize||(perfWide()?18:20);}
 function fitPerform(){
   const body=document.querySelector('#performPage .song');if(!body)return;
   const wrap=body.parentElement;if(!wrap)return; /* .psong-wrap is the scroll region */
-  const wide=window.innerWidth>=720; /* iPad (incl. mini/portrait) + wide landscape */
-  const floor=18;let fit=false;
+  if(scrollOn)return;                          /* autoscroll owns the layout while it runs */
+  const wide=perfWide(),floor=perfFloor();
   body.style.columnCount=wide?2:1;
-  /* Shrink to fit the whole song on one screen if we can; the two columns stay. */
-  for(let sz=30;sz>=floor;sz--){body.style.fontSize=sz+'px';
-    if(wrap.scrollHeight<=wrap.clientHeight+1){fit=true;break;}}
-  /* Too long for one screen: keep the column count, stay readable, and let the
-     chart scroll vertically — the rest of the song flows onto a second page below. */
-  if(!fit){body.style.fontSize=Math.max(S.size,wide?18:20)+'px';wrap.scrollTop=0;}
+  /* Largest size (up to 30 px) at which the whole song fits on one screen; fit is monotonic in size, so a
+     binary search needs ~5 layouts where the old top-down walk needed 13 — on every key tap. */
+  const fits=sz=>{body.style.fontSize=sz+'px';return wrap.scrollHeight<=wrap.clientHeight+1;};
+  let lo=floor,hi=Math.max(floor,30),best=0;
+  if(fits(hi))best=hi;else if(fits(lo)){while(hi-lo>1){const mid=(lo+hi)>>1;if(fits(mid))lo=mid;else hi=mid;}best=lo;}
+  /* Too long for one screen: sit at the floor — the size the musician chose — and scroll. */
+  if(best)body.style.fontSize=best+'px';else{body.style.fontSize=floor+'px';wrap.scrollTop=0;}
 }
+function perfSize(delta){const cur=perfFloor();ui.psize=Math.max(12,Math.min(40,cur+delta));saveUI();fitPerform();toast('Chart text '+ui.psize+' px',1200);}
 let pbarTimer;
 function placePbar(){const b=document.getElementById('pbar'),d=document.getElementById('pdock');if(!b||!d)return;const r=d.getBoundingClientRect();b.style.bottom=Math.max(0,Math.round(window.innerHeight-r.top+8))+'px';}
 function showPbar(){const b=document.getElementById('pbar');placePbar();b.classList.remove('hidden');requestAnimationFrame(placePbar);clearTimeout(pbarTimer);pbarTimer=setTimeout(()=>b.classList.add('hidden'),6000);}
@@ -1007,7 +1107,7 @@ function cycleLead(){const seq=[0,1,2,4];let i=seq.indexOf(getLead());i=(i+1)%se
 function syncLeadBtn(){const b=document.getElementById('aLeadVal');if(b)b.textContent=getLead();}
 /* metronome — lookahead scheduler for stable timing (Web Audio) */
 let ac=null,metroOn=false,nextNoteTime=0,beatNo=0,metroTimer=null;const LOOKAHEAD=25,SCHED_AHEAD=0.12;
-let metroStopBeat=Infinity,metroStopTimer=null,metroPending=false,metroTok=0,metroSongId=null;const METRO_BARS=8;
+let metroStopBeat=Infinity,metroStopTimer=null,metroPending=false,metroTok=0,metroSongId=null,metroRetried=false;const METRO_BARS=8;
 let beatQueue=[],visRAF=null,dockLit=false,dockLitT=0;
 /* bar length + accent pattern follow the song's time signature */
 function meterOf(song){
@@ -1024,7 +1124,43 @@ function meterOf(song){
 }
 /* seconds per tick for the current song: the pulse rate times its subdivision */
 function tickSec(){const mt=meterOf(curSong());return 60/(getTempo(S.selId)*mt.sub);}
-function ensureAC(){try{if(!ac||ac.state==='closed'){ac=new (window.AudioContext||window.webkitAudioContext)();}}catch(e){return null;}if(ac.state==='suspended'||ac.state==='interrupted'){try{ac.resume();}catch(e){}}return ac;}
+/* ---- audio context lifecycle, iOS-hardened ----
+   iOS suspends or "interrupts" the AudioContext whenever the screen locks, the app is switched, or Siri or a
+   call cuts in. Two things then happen in practice: (a) the context still reports "running" but its clock no
+   longer advances, so every scheduled click lands in the past and nothing sounds or blinks; (b) resume()
+   never resolves, so a start that waits on it hangs — and the old code left a "pending" flag stuck, so the
+   next tap was swallowed as a stop. Both read as "the metronome won't restart". The fix: after any visibility
+   or state change, distrust the context — probe that its clock moves, and if not, close it (iOS caps live
+   contexts) and build a fresh one, re-homing the pad. Every wait is bounded; nothing here can hang. */
+let acSuspect=false,acStateWired=null;
+function makeAC(){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;try{return new C({latencyHint:'interactive'});}catch(e){try{return new C();}catch(e2){return null;}}}
+function wireACState(c){if(!c||acStateWired===c)return;acStateWired=c;try{c.onstatechange=()=>{if(c!==ac)return;if(c.state!=='running'){acSuspect=true;if(metroOn)stopMetro();}};}catch(e){}}
+function ensureAC(){if(!ac||ac.state==='closed'){ac=makeAC();acSuspect=false;}if(!ac)return null;wireACState(ac);if(ac.state!=='running'){try{const p=ac.resume();if(p&&p.catch)p.catch(()=>{});}catch(e){}}return ac;}
+function wait(ms){return new Promise(r=>setTimeout(r,ms));}
+function clockAlive(c,ms){const t0=c.currentTime;return wait(ms).then(()=>c.state==='running'&&c.currentTime>t0+0.0005);}
+async function rebuildAC(){const old=ac,wasPad=padOn;if(wasPad){padOn=false;padNodes=null;}   /* the pad's nodes die with the old context */
+  ac=makeAC();acSuspect=false;if(old&&old!==ac){try{const p=old.close();if(p&&p.catch)p.catch(()=>{});}catch(e){}}
+  if(!ac)return null;wireACState(ac);
+  if(ac.state!=='running'){try{await Promise.race([ac.resume(),wait(450)]);}catch(e){}}
+  if(wasPad)startPad();return ac;}
+/* resolves to a running context with a live clock, or null. Fast path adds no latency; worst case ≈1.2 s. */
+async function audioReady(){let c=ensureAC();if(!c)return null;
+  if(c.state==='running'&&!acSuspect)return c;
+  if(c.state!=='running'){try{await Promise.race([c.resume(),wait(350)]);}catch(e){}}
+  if(c.state==='running'&&await clockAlive(c,110)){acSuspect=false;return c;}
+  c=await rebuildAC();if(!c)return null;
+  if(c.state==='running'&&await clockAlive(c,110))return c;
+  return null;}
+/* iOS routes Web Audio through the "ambient" session, which the ring/silent switch mutes. A looping silent
+   <audio> element moves the session to "playback": the click and pad then sound even with the switch on
+   silent, and the session stays alive between songs. Started only when audio is wanted, stopped on exit. */
+let iosUnlockEl=null;
+function isIOS(){return /iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
+function silentWavURL(){const rate=8000,n=rate/4,buf=new ArrayBuffer(44+n),v=new DataView(buf);const str=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
+  str(0,'RIFF');v.setUint32(4,36+n,true);str(8,'WAVE');str(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,rate,true);v.setUint32(28,rate,true);v.setUint16(32,1,true);v.setUint16(34,8,true);str(36,'data');v.setUint32(40,n,true);
+  for(let i=0;i<n;i++)v.setUint8(44+i,128);return URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));}
+function iosAudioUnlock(on){if(!isIOS())return;try{if(on){if(!iosUnlockEl){const a=document.createElement('audio');a.setAttribute('playsinline','');a.loop=true;a.preload='auto';a.src=silentWavURL();a.style.display='none';document.body.appendChild(a);iosUnlockEl=a;}const p=iosUnlockEl.play();if(p&&p.catch)p.catch(()=>{});}else if(iosUnlockEl){iosUnlockEl.pause();}}catch(e){}}
+function metroBtnState(s){const b=document.getElementById('mTog');if(!b)return;b.classList.toggle('on',s==='on');b.textContent=s==='on'?'⏸':(s==='pending'?'…':'▶');}
 /* lvl: 2 = downbeat, 1 = secondary pulse (compound), 0 = weak beat, 3 = subdivision tick (compound only) */
 function clickAt(time,lvl){const o=ac.createOscillator(),g=ac.createGain();
   /* accents differ three ways at once — pitch, level and timbre — so the downbeat is unmistakable
@@ -1067,9 +1203,14 @@ function visTick(){
 function resetMetroBadge(){const b=document.querySelector('#performPage .metro-badge');if(!b)return;b.classList.remove('lvl0','lvl1','lvl2','run');const n=b.querySelector('.metro-num');if(n){const s=curSong();n.textContent=(s&&s.time)||'4/4';}}
 function wireMetroBadge(){const b=document.querySelector('#performPage .metro-badge');if(!b)return;b.onclick=toggleMetro;if(metroOn)b.classList.add('run');else resetMetroBadge();}
 function metroScheduler(){if(!metroOn||!ac)return;const spb=tickSec();const mt=meterOf(curSong());while(nextNoteTime<ac.currentTime+SCHED_AHEAD&&beatNo<metroStopBeat){const pos=beatNo%mt.beats;const lvl=pos===0?2:(mt.sec.has(pos)?1:(pos%mt.sub?3:0));if(!perfPref.silent)clickAt(nextNoteTime,lvl);flashBeat(lvl,nextNoteTime,pos,Math.floor(pos/mt.sub)+1);nextNoteTime+=spb;beatNo++;}if(beatNo>=metroStopBeat)return;metroTimer=setTimeout(metroScheduler,LOOKAHEAD);}
-function startMetro(autoStop){if(metroOn||metroPending)return;let ctx=ensureAC();if(!ctx)return;if(ctx.state==='interrupted'){try{ac=new (window.AudioContext||window.webkitAudioContext)();ctx=ac;}catch(e){}}if(ctx.state==='running'){beginMetro(autoStop);return;}const tok=++metroTok;metroPending=true;const go=function(){metroPending=false;if(tok===metroTok)beginMetro(autoStop);};try{ctx.resume().then(go,go);}catch(e){go();}}
-function beginMetro(autoStop){if(metroOn||!ac)return;metroOn=true;metroSongId=S.selId;beatNo=0;nextNoteTime=ac.currentTime+0.1;beatQueue=[];dockLit=false;metroStopBeat=(autoStop===false)?Infinity:METRO_BARS*meterOf(curSong()).beats;if(metroStopTimer){clearTimeout(metroStopTimer);metroStopTimer=null;}if(metroStopBeat!==Infinity){const spb=tickSec();metroStopTimer=setTimeout(function(){if(metroOn)stopMetro();},(0.1+metroStopBeat*spb)*1000+80);}const b=document.getElementById('mTog');if(b){b.classList.add('on');b.textContent='⏸';}const mb=document.querySelector('#performPage .metro-badge');if(mb)mb.classList.add('run');metroScheduler();if(!visRAF)visRAF=requestAnimationFrame(visTick);}
-function stopMetro(){metroOn=false;metroPending=false;metroTok++;if(metroTimer){clearTimeout(metroTimer);metroTimer=null;}if(metroStopTimer){clearTimeout(metroStopTimer);metroStopTimer=null;}if(visRAF){cancelAnimationFrame(visRAF);visRAF=null;}beatQueue=[];dockLit=false;const b=document.getElementById('mTog');if(b){b.classList.remove('on');b.textContent='▶';}buildBeatRow();resetMetroBadge();}
+function startMetro(autoStop){if(metroOn||metroPending)return;const tok=++metroTok;metroPending=true;metroBtnState('pending');
+  audioReady().then(c=>{metroPending=false;if(tok!==metroTok)return;if(!c){metroBtnState('off');toast('Audio isn\u2019t available right now \u2014 tap the click again');return;}beginMetro(autoStop);},()=>{metroPending=false;if(tok===metroTok)metroBtnState('off');});}
+function beginMetro(autoStop){if(metroOn||!ac)return;iosAudioUnlock(true);metroOn=true;metroSongId=S.selId;beatNo=0;nextNoteTime=ac.currentTime+0.1;beatQueue=[];dockLit=false;metroStopBeat=(autoStop===false)?Infinity:METRO_BARS*meterOf(curSong()).beats;if(metroStopTimer){clearTimeout(metroStopTimer);metroStopTimer=null;}if(metroStopBeat!==Infinity){const spb=tickSec();metroStopTimer=setTimeout(function(){if(metroOn)stopMetro();},(0.1+metroStopBeat*spb)*1000+80);}metroBtnState('on');const mb=document.querySelector('#performPage .metro-badge');if(mb)mb.classList.add('run');metroScheduler();if(!visRAF)visRAF=requestAnimationFrame(visTick);
+  /* watchdog: if the clock has not moved 260 ms after starting, the context is dead even though nothing warned
+     us — rebuild once and restart. A second failure falls through to the honest toast in startMetro. */
+  const tok=metroTok,t0=ac.currentTime,retry=!metroRetried;metroRetried=true;
+  setTimeout(()=>{if(!metroOn||tok!==metroTok||!ac)return;if(ac.currentTime>t0+0.05){metroRetried=false;return;}acSuspect=true;stopMetro();if(retry)startMetro(autoStop);else{metroRetried=false;toast('Audio isn\u2019t available right now \u2014 tap the click again');}},260);}
+function stopMetro(){metroOn=false;metroPending=false;metroTok++;if(metroTimer){clearTimeout(metroTimer);metroTimer=null;}if(metroStopTimer){clearTimeout(metroStopTimer);metroStopTimer=null;}if(visRAF){cancelAnimationFrame(visRAF);visRAF=null;}beatQueue=[];dockLit=false;metroBtnState('off');buildBeatRow();resetMetroBadge();}
 function toggleMetro(){(metroOn||metroPending)?stopMetro():startMetro();}
 function rearmMetroStop(){if(!metroOn||metroStopBeat===Infinity||!ac)return;if(metroStopTimer){clearTimeout(metroStopTimer);metroStopTimer=null;}const spb=tickSec();const remain=Math.max(0,metroStopBeat-beatNo);const lead=Math.max(0,nextNoteTime-ac.currentTime);metroStopTimer=setTimeout(function(){if(metroOn)stopMetro();},(lead+remain*spb)*1000+80);}
 let taps=[];
@@ -1109,7 +1250,8 @@ function padVoiceFreqs(r){const fifth=Math.pow(2,7/12);return [
 function makeReverbIR(c,seconds,decay){const len=Math.floor(c.sampleRate*seconds),buf=c.createBuffer(2,len,c.sampleRate);for(let ch=0;ch<2;ch++){const d=buf.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay);}return buf;}
 function padTarget(){return (getPadVol()/9)*0.5;}
 function startPad(){
-  if(!ensureAC()||padOn)return;padOn=true;const now=ac.currentTime;
+  if(!ensureAC()||padOn)return;iosAudioUnlock(true);padOn=true;const now=ac.currentTime;
+  if(acSuspect){clockAlive(ac,120).then(ok=>{if(!ok&&padOn)rebuildAC();else acSuspect=false;});}   /* a doubtful context re-homes the pad on a fresh one */
   const master=ac.createGain();master.gain.value=0.0001;
   const dry=ac.createGain();dry.gain.value=0.7;
   const wet=ac.createGain();wet.gain.value=0.4;
@@ -1136,7 +1278,7 @@ function startPad(){
 function retunePad(){if(!padOn||!padNodes||!ac)return;const fr=padVoiceFreqs(padRootHz()),t=ac.currentTime;padNodes.oscs.forEach((o,i)=>{if(fr[i])o.frequency.linearRampToValueAtTime(fr[i].f,t+0.45);});}
 function setPadMaster(){if(!padOn||!padNodes||!ac)return;padNodes.master.gain.setTargetAtTime(Math.max(0.001,padTarget()),ac.currentTime,0.2);}
 function stopPad(){
-  if(!padOn)return;padOn=false;const b=document.getElementById('padTog');if(b){b.classList.remove('on');b.textContent='▶';}
+  if(!padOn)return;padOn=false;const b=document.getElementById('padTog');if(b){b.classList.remove('on');b.textContent='∿';}
   if(padNodes&&ac){const t=ac.currentTime,m=padNodes.master;try{m.gain.cancelScheduledValues(t);m.gain.setValueAtTime(Math.max(0.0002,m.gain.value),t);m.gain.exponentialRampToValueAtTime(0.0001,t+1.3);}catch(e){}
     const n=padNodes;padNodes=null;setTimeout(()=>{try{n.oscs.forEach(o=>{o.stop();o.disconnect();});n.fLfo.stop();n.aLfo.stop();n.master.disconnect();}catch(e){}},1500);}
 }
@@ -1146,7 +1288,7 @@ function syncPadKey(){const el=document.getElementById('padKey');if(el)el.textCo
 /* dock sync + lifecycle */
 function syncDock(){const mv=document.getElementById('mBpmVal');if(mv)mv.textContent=getTempo(S.selId);const av=document.getElementById('aSpdVal');if(av)av.textContent=getSpeed(S.selId);const mm=document.getElementById('mMeter');if(mm){const s=curSong();mm.textContent=(s&&s.time)?s.time:'4/4';}buildBeatRow();syncLeadBtn();syncPadKey();if(padOn)retunePad();}
 function perfDockOnRender(){if(scrollOn)stopScroll(false);if(metroOn&&metroSongId!==S.selId)stopMetro();syncDock();}
-function perfTransportReset(){stopMetro();stopPad();if(scrollOn)stopScroll(false);syncDock();}
+function perfTransportReset(){stopMetro();stopPad();if(scrollOn)stopScroll(false);iosAudioUnlock(false);syncDock();}
 function wirePerformDock(){
   loadPerf();
   document.getElementById('mTog').onclick=toggleMetro;
@@ -1160,6 +1302,7 @@ function wirePerformDock(){
   document.getElementById('padTog').onclick=togglePad;
   const pvr=document.getElementById('padVolRange');if(pvr){pvr.value=getPadVol();pvr.oninput=()=>{setPadVol(+pvr.value);setPadMaster();syncPadKey();};}
   const ms=document.getElementById('mSilent');if(ms)ms.onclick=()=>{perfPref.silent=!perfPref.silent;savePerf();syncSilentBtn();};
+  const more=document.getElementById('pdMore');if(more)more.onclick=()=>{const d=document.getElementById('pdock');d.classList.toggle('open');more.classList.toggle('on',d.classList.contains('open'));placePbar();};
   syncSilentBtn();
 }
 function syncSilentBtn(){const b=document.getElementById('mSilent');if(!b)return;b.textContent=perfPref.silent?'🔇':'🔊';b.title=perfPref.silent?'Blinker-only (no click) — tap to turn the click on':'Click sound on — tap for blinker-only';}
@@ -1171,8 +1314,17 @@ function saveAnnot(){try{localStorage.setItem('stagecharts_annot',JSON.stringify
 const ANN={color:'#e23b2e',hi:false,tool:'pen'};
 function inkColor(){const c=getComputedStyle(document.documentElement).getPropertyValue('--ink').trim();return c||'#222';}
 function strokeColor(c){return c==='ink'?inkColor():c;}
-function annStrokes(){if(!S.selId)return [];return annot[S.selId]||(annot[S.selId]=[]);}
-function annContainer(){return S.perform?document.querySelector('#performPage .song'):document.querySelector('#stage .song');}
+function annStrokes(){if(!S.selId)return [];return annot[S.selId]||[];}                         /* read: no side effects */
+function annStrokesW(){if(!S.selId)return [];return annot[S.selId]||(annot[S.selId]=[]);}        /* write: create on demand */
+/* the canvas lives in the scroll region (not inside the multi-column .song) so it scrolls with the chart
+   without sitting as an absolutely-positioned child of a multicol box, which WebKit lays out badly */
+function annContainer(){return S.perform?document.querySelector('#performPage .psong-wrap'):document.querySelector('#stage .psong-wrap');}
+/* iOS has a hard budget for canvas memory and kills the page when it is exceeded. Before this, a
+   full-chart canvas (20+ MB on a phone) was allocated on EVERY render — every key tap, capo change or
+   song change — whether or not anything was ever drawn. Now: no strokes and not drawing → no canvas.
+   Old canvases are zeroed before the DOM drops them so WebKit frees the backing store at once. */
+const ANN_MAX_PX=4e6;
+function releaseAnnot(root){(root||document).querySelectorAll('.annot-canvas').forEach(c=>{try{c.width=0;c.height=0;}catch(e){}c.remove();});}
 function drawStroke(ctx,s,w,h){
   if(!s.p||!s.p.length)return;
   ctx.save();ctx.strokeStyle=strokeColor(s.c);ctx.lineCap='round';ctx.lineJoin='round';
@@ -1186,11 +1338,13 @@ function drawStroke(ctx,s,w,h){
 function redrawAnnot(cv){const ctx=cv._ctx;ctx.clearRect(0,0,cv._w,cv._h);annStrokes().forEach(s=>drawStroke(ctx,s,cv._w,cv._h));}
 function attachAnnot(){
   const body=annContainer();if(!body)return;
+  if(!S.draw&&!annStrokes().length){releaseAnnot(body);return;}
   body.style.position='relative';
   let cv=body.querySelector('.annot-canvas');
   if(!cv){cv=document.createElement('canvas');cv.className='annot-canvas';body.appendChild(cv);}
   const w=Math.max(body.scrollWidth,body.clientWidth),h=Math.max(body.scrollHeight,body.clientHeight);
-  const dpr=Math.min(window.devicePixelRatio||1,2);
+  let dpr=Math.min(window.devicePixelRatio||1,2);
+  if(w*h*dpr*dpr>ANN_MAX_PX)dpr=Math.max(0.5,Math.sqrt(ANN_MAX_PX/(w*h)));   /* budget: never more than 4M device pixels */
   cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);cv.style.width=w+'px';cv.style.height=h+'px';
   const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
   cv._ctx=ctx;cv._w=w;cv._h=h;
@@ -1215,10 +1369,10 @@ function wireAnnotCanvas(cv){
       if(annCur.t==='hi'){ctx.globalAlpha=0.32;ctx.lineWidth=Math.max(8,annCur.w*w);}else{ctx.globalAlpha=1;ctx.lineWidth=Math.max(1.5,annCur.w*w);}
       ctx.beginPath();ctx.moveTo(annCur.p[n-2][0]*w,annCur.p[n-2][1]*h);ctx.lineTo(annCur.p[n-1][0]*w,annCur.p[n-1][1]*h);ctx.stroke();ctx.restore();}
   });
-  const end=()=>{if(!annDrawing)return;annDrawing=false;if(annCur&&annCur.p.length){annStrokes().push(annCur);saveAnnot();}annCur=null;redrawAnnot(cv);};
+  const end=()=>{if(!annDrawing)return;annDrawing=false;if(annCur&&annCur.p.length){annStrokesW().push(annCur);saveAnnot();}annCur=null;redrawAnnot(cv);};
   cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);
 }
-function eraseAt(cv,p){const arr=annStrokes();const th=0.022;let ch=false;for(let i=arr.length-1;i>=0;i--){if(arr[i].p.some(q=>Math.abs(q[0]-p[0])<th&&Math.abs(q[1]-p[1])<th)){arr.splice(i,1);ch=true;}}if(ch){saveAnnot();redrawAnnot(cv);}}
+function eraseAt(cv,p){const arr=annStrokesW();const th=0.022;let ch=false;for(let i=arr.length-1;i>=0;i--){if(arr[i].p.some(q=>Math.abs(q[0]-p[0])<th&&Math.abs(q[1]-p[1])<th)){arr.splice(i,1);ch=true;}}if(ch){saveAnnot();redrawAnnot(cv);}}
 function setDraw(on){
   S.draw=on;document.body.classList.toggle('drawing',on);
   const pd=document.getElementById('pDraw');if(pd)pd.classList.toggle('on',on);
@@ -1240,7 +1394,7 @@ function wireAnnot(){
   document.getElementById('anHi').onclick=()=>{ANN.hi=!ANN.hi;ANN.tool='pen';syncAnnotBar();};
   document.getElementById('anErase').onclick=()=>{ANN.tool=(ANN.tool==='erase')?'pen':'erase';syncAnnotBar();};
   document.getElementById('anUndo').onclick=()=>{const a=annStrokes();if(a.length){a.pop();saveAnnot();attachAnnot();}};
-  document.getElementById('anClear').onclick=()=>{if(annStrokes().length&&confirm('Clear all annotations on this song?')){annot[S.selId]=[];saveAnnot();attachAnnot();}};
+  document.getElementById('anClear').onclick=()=>{if(annStrokes().length&&confirm('Clear all annotations on this song?')){delete annot[S.selId];saveAnnot();attachAnnot();}};
   document.getElementById('anDone').onclick=()=>setDraw(false);
   syncAnnotBar();
 }
@@ -1279,7 +1433,7 @@ function renderJump(q){
 }
 function highlightJump(){const els=[...document.querySelectorAll('#jumpList .jump-it')];els.forEach((e,i)=>e.classList.toggle('sel',i===jumpSel));const cur=els[jumpSel];if(cur)cur.scrollIntoView({block:'nearest'});}
 function jumpPick(id){document.getElementById('jump').close();if(id)openSong(id);}
-function openJump(){const dlg=document.getElementById('jump'),inp=document.getElementById('jumpInput');inp.value='';renderJump('');dlg.showModal();setTimeout(()=>{try{inp.focus();}catch(e){}},30);}
+function openJump(){const dlg=document.getElementById('jump'),inp=document.getElementById('jumpInput');inp.value='';renderJump('');dlg.showModal();if(!(navigator.maxTouchPoints>0))setTimeout(()=>{try{inp.focus();}catch(e){}},30);}
 function wireJump(){
   const inp=document.getElementById('jumpInput'),dlg=document.getElementById('jump');
   inp.oninput=()=>renderJump(inp.value);
@@ -1323,7 +1477,7 @@ function renderLibraryView(){
   const songs=[...library].sort((a,b)=>a.title.localeCompare(b.title));
   el.innerHTML='<div class="mv-head"><h1>Library</h1><div class="mv-search"><input id="libSearch" class="search" placeholder="Search songs…" value="'+esc(S.search||'')+'"></div></div>'
     +'<div class="scard-list" id="libList">'+(songs.length?songs.map(songCardHTML).join(''):'<div class="mv-empty">No songs yet. Tap “Add song”, or Restore a backup.</div>')+'</div>'
-    +'<div class="mv-actions"><button class="btn" id="libAdd">＋ Add song</button><button class="btn" id="libBackup">⬇ Backup</button><button class="btn" id="libRestore">⬆ Restore</button></div>';
+    +'<div class="mv-actions"><button class="btn" id="libAdd">＋ Add song</button><button class="btn" id="libBackup">⬇ Backup</button><button class="btn" id="libRestore">⬆ Restore</button><span class="mv-build" title="Build number — bumps with every deploy">build '+SEED_VERSION+' · '+library.length+' songs</span></div>';
   el.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{openSong(b.dataset.open);switchView('reader');});
   const inp=document.getElementById('libSearch');
   if(inp)inp.oninput=()=>{S.search=inp.value;const q=inp.value.toLowerCase();el.querySelectorAll('#libList .scard').forEach(c=>{c.style.display=(!q||c.dataset.search.indexOf(q)>=0)?'':'none';});};
@@ -1476,8 +1630,8 @@ function applyPicker(){
 
 /* ===================== controls ===================== */
 function setMode(m){S.mode=m;['Names','Numbers','Lyrics'].forEach(x=>document.getElementById('m'+x).classList.toggle('on',m===x.toLowerCase()));document.body.classList.toggle('lyricsOnly',m==='lyrics');document.body.classList.toggle('numbers',m==='numbers');rerender();}
-function setCols(c){S.cols=c;document.documentElement.style.setProperty('--cols',c);document.getElementById('col1').classList.toggle('on',c===1);document.getElementById('col2').classList.toggle('on',c===2);if(S.page)fitPage();}
-function setSize(px){S.size=Math.max(10,Math.min(30,px));document.documentElement.style.setProperty('--songsize',S.size+'px');if(S.page)fitPage();}
+function setCols(c){S.cols=c;ui.cols=c;saveUI();document.documentElement.style.setProperty('--cols',c);document.getElementById('col1').classList.toggle('on',c===1);document.getElementById('col2').classList.toggle('on',c===2);if(S.page)fitPage();}
+function setSize(px){S.size=Math.max(10,Math.min(30,px));ui.size=S.size;saveUI();document.documentElement.style.setProperty('--songsize',S.size+'px');if(S.page)fitPage();}
 function doPrint(){
   const root=document.getElementById('printRoot');
   const songs=S.activeSet?setSongs():[curSong()];
@@ -1508,8 +1662,10 @@ function saveEditor(){
   if(editingId){library[library.findIndex(s=>s.id===editingId)]=obj;}else library.push(obj);
   S.selId=obj.id;S.targetIdx=null;S.capo=0;persist();document.getElementById('editor').close();render();
 }
-function deleteEditor(){if(!editingId)return;if(!confirm('Delete this song?'))return;library=library.filter(s=>s.id!==editingId);sets.forEach(st=>st.songIds=st.songIds.filter(x=>x!==editingId));delete overrides[editingId];S.selId=library[0]?.id||null;S.targetIdx=null;persist();document.getElementById('editor').close();render();}
-function exportLib(){const blob=new Blob([JSON.stringify({library,sets,overrides,arrangements,annotations:annot,seedVersion},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='stage-charts-backup.json';a.click();}
+function deleteEditor(){if(!editingId)return;if(!confirm('Delete this song?'))return;library=library.filter(s=>s.id!==editingId);sets.forEach(st=>{st.songIds=st.songIds.filter(x=>x!==editingId);if(st.arrangements)delete st.arrangements[editingId];if(st.keys)delete st.keys[editingId];});delete overrides[editingId];delete arrangements[editingId];delete annot[editingId];saveAnnot();S.selId=library[0]?.id||null;S.targetIdx=null;persist();document.getElementById('editor').close();render();}
+function exportLib(){const json=JSON.stringify({library,sets,overrides,arrangements,annotations:annot,seedVersion},null,2);const name='stage-charts-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  try{if(navigator.canShare&&window.File){const f=new File([json],name,{type:'application/json'});if(navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Stage Charts backup'}).catch(()=>{});return;}}}catch(e){}
+  const blob=new Blob([json],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();}
 function importLib(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d)){library=d;sets=[];overrides={};arrangements={};}else{library=d.library||[];sets=d.sets||[];overrides=d.overrides||{};arrangements=d.arrangements||{};seedVersion=d.seedVersion||seedVersion;if(d.annotations){annot=d.annotations;saveAnnot();}}S.selId=library[0]?.id;S.activeSet=null;S.targetIdx=null;S.leaderIdx=null;persist();render();}catch(err){alert('That file could not be read.');}};r.readAsText(f);}
 
 /* ===================== wiring ===================== */
@@ -1531,7 +1687,7 @@ function wire(){
   document.getElementById('szUp').onclick=()=>setSize(S.size+1);
   document.getElementById('szDown').onclick=()=>setSize(S.size-1);
   document.getElementById('pageBtn').onclick=e=>{S.page=!S.page;document.body.classList.toggle('pageMode',S.page);e.currentTarget.classList.toggle('on',S.page);render();};
-  document.getElementById('themeBtn').onclick=()=>{S.dark=!S.dark;document.body.classList.toggle('dark',S.dark);};
+  document.getElementById('themeBtn').onclick=()=>{ui.dark=!S.dark;saveUI();applyTheme();};
   document.getElementById('printBtn').onclick=doPrint;
   document.getElementById('toggleAside').onclick=()=>document.getElementById('aside').classList.toggle('hide');
   document.getElementById('setSel').onchange=e=>{S.activeSet=e.target.value||null;if(S.activeSet){const songs=setSongs();if(songs[0])loadSongState(songs[0].id);}render();};
@@ -1546,7 +1702,10 @@ function wire(){
   document.getElementById('performBtn').onclick=enterPerform;
   wirePerformDock();
   document.getElementById('pExitFixed').onclick=exitPerform;
+  document.getElementById('pTheme').onclick=()=>{ui.dark=!S.dark;saveUI();applyTheme();};
   document.getElementById('pNum').onclick=()=>{S.mode=(S.mode==='numbers')?'names':'numbers';renderPerform();};
+  document.getElementById('pSzDown').onclick=()=>{perfSize(-2);showPbar();};
+  document.getElementById('pSzUp').onclick=()=>{perfSize(2);showPbar();};
   document.getElementById('pPrev').onclick=()=>performGo(-1);
   document.getElementById('pNext').onclick=()=>performGo(1);
   document.getElementById('pKeyUp').onclick=()=>{S.targetIdx=(S.targetIdx+1)%12;savePlay();renderPerform();showPbar();};
@@ -1555,7 +1714,7 @@ function wire(){
   pcap.innerHTML=Array.from({length:8},(_,i)=>'<option value="'+i+'">'+(i===0?'capo 0':'capo '+i)+'</option>').join('');
   pcap.onchange=()=>{S.capo=+pcap.value;savePlay();renderPerform();showPbar();};
   const ps=document.getElementById('perform');let tsx=0,tsy=0,tst=0,tCtrl=false;
-  ps.addEventListener('touchstart',e=>{tCtrl=!!(e.target&&e.target.closest&&e.target.closest('.pbar,.pdock,.pfix,.ppos,#annotBar,.annot-canvas,.songmap'));tsx=e.changedTouches[0].clientX;tsy=e.changedTouches[0].clientY;tst=Date.now();},{passive:true});
+  ps.addEventListener('touchstart',e=>{tCtrl=!!(e.target&&e.target.closest&&e.target.closest('.pbar,.pdock,.pfix,.ppos,#annotBar,.annot-canvas,.songmap,.metro-badge,#toast'));tsx=e.changedTouches[0].clientX;tsy=e.changedTouches[0].clientY;tst=Date.now();},{passive:true});
   ps.addEventListener('touchend',e=>{
     if(tCtrl)return;
     const dx=e.changedTouches[0].clientX-tsx,dy=e.changedTouches[0].clientY-tsy;
@@ -1565,8 +1724,14 @@ function wire(){
   ['pbar','pdock'].forEach(id=>{const el=document.getElementById(id);if(!el)return;['touchstart','touchend','touchmove'].forEach(ev=>el.addEventListener(ev,e=>e.stopPropagation(),{passive:true}));});
   document.addEventListener('keydown',e=>{
     if(!S.perform)return;
-    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){performGo(1);e.preventDefault();}
-    else if(e.key==='ArrowLeft'||e.key==='PageUp'){performGo(-1);e.preventDefault();}
+    const t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable))return;
+    if(document.querySelector('dialog[open]'))return;
+    /* pedals send PageDown / PageUp / Space / arrows. Left–right always changes song; down / up / space turn a
+       page of a long chart first and only move to the next song once the end is on screen. */
+    if(e.key==='ArrowRight'){performGo(1);e.preventDefault();}
+    else if(e.key==='ArrowLeft'){performGo(-1);e.preventDefault();}
+    else if(e.key==='PageDown'||e.key===' '||e.key==='ArrowDown'){e.preventDefault();if(!perfPage(1))performGo(1);}
+    else if(e.key==='PageUp'||e.key==='ArrowUp'){e.preventDefault();if(!perfPage(-1))performGo(-1);}
     else if(e.key==='Escape'){exitPerform();}
   });
   window.addEventListener('resize',()=>{if(S.perform)fitPerform();setTimeout(()=>{attachAnnot();placePbar();},60);});
@@ -1678,7 +1843,7 @@ function wireStyle(){
 }
 function boot(){
   wire();
-  loadStyle();applyStyle();loadAnnot();wireAnnot();wireJump();
+  loadUI();applyTheme();loadStyle();applyStyle();loadAnnot();wireAnnot();wireJump();
   try{S.full=localStorage.getItem('stagecharts_full')==='1';}catch(e){}
   const saved=store.load();
   if(saved&&saved.library&&saved.library.length){
@@ -1691,14 +1856,20 @@ function boot(){
   S.activeSet=sets.length?sets[sets.length-1].id:null;
   const first=setSongs()[0]||library[0];
   if(first)loadSongState(first.id);
-  setMode('names');setCols(2);setSize(18);
+  setMode('names');setCols(ui.cols===1?1:2);setSize(ui.size||18);
   render();
   switchView(S.activeSet?'setlist':'library');
 }
-boot();
+function bootRecovery(e){
+  document.body.innerHTML='<div style="max-width:520px;margin:12vh auto;padding:24px;font-family:Inter,-apple-system,sans-serif;color:#1d2125;line-height:1.5"><h2 style="margin:0 0 8px">Stage Charts couldn’t start</h2><p style="color:#6b7480;font-size:13px;word-break:break-word">'+esc(String(e&&e.message||e))+'</p><p>Your songs and sets are still saved on this device.</p><p><button id="rbReload" style="padding:12px 18px;font-size:16px;margin:0 10px 10px 0">Try again</button><button id="rbReset" style="padding:12px 18px;font-size:16px">Start fresh from the built-in songs</button></p><p style="font-size:12px;color:#6b7480">“Start fresh” keeps a copy of your current data under a backup key first, so nothing is lost.</p></div>';
+  document.getElementById('rbReload').onclick=()=>location.reload();
+  document.getElementById('rbReset').onclick=()=>{try{const k='stagecharts_v1';const v=localStorage.getItem(k);if(v)localStorage.setItem(k+'_bak_'+Date.now(),v);localStorage.removeItem(k);}catch(x){}location.reload();};
+}
+try{boot();}catch(e){noteErr(e);bootRecovery(e);}
 
 /* offline / installable */
 if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{});});}
+window.addEventListener('pagehide',()=>{try{persistNow();}catch(e){}});
 </script>
 </body>
 </html>
